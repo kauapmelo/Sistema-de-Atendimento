@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LexCall — Sistema de Atendimento</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       HEADER — Navegação principal
+  ════════════════════════════════════════ -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon"></div>
+      LexCall
+    </div>
+    <nav>
+      <button class="active" onclick="showView('reception')">Recepção</button>
+      <button onclick="showView('lawyer')">Advogado</button>
+      <button onclick="showView('monitor')">Monitor</button>
+      <button onclick="showView('config')" style="color:var(--gold-dim)">⚙ Config</button>
+    </nav>
+  </header>
+
+  <!-- ═══════════════════════════════════════
+       MAIN — Conteúdo das telas
+  ════════════════════════════════════════ -->
+  <main>
+
+    <!-- ── TELA 1: RECEPÇÃO — CADASTRO ── -->
+    <div id="view-reception" class="view active">
+      <div class="page-title">Recepção — Cadastro</div>
+      <p class="page-sub">Registre a chegada dos clientes e vincule ao advogado responsável.</p>
+
+      <!-- Formulário de cadastro -->
+      <div class="card">
+        <div class="form-grid">
+          <div>
+            <label for="inp-name">Nome do Cliente</label>
+            <input type="text" id="inp-name" placeholder="Ex.: João Silva" autocomplete="off" />
+          </div>
+          <div>
+            <label for="inp-lawyer">Advogado</label>
+            <select id="inp-lawyer">
+              <option value="">— Selecione —</option>
+              <option value="Dr. André Costa">Dr. André Costa</option>
+              <option value="Dra. Beatriz Melo">Dra. Beatriz Melo</option>
+              <option value="Dr. Carlos Nunes">Dr. Carlos Nunes</option>
+              <option value="Dra. Diana Faria">Dra. Diana Faria</option>
+            </select>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" onclick="addClient()">＋ Adicionar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatísticas do dia -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-desc">Total hoje</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-waiting">0</div>
+          <div class="stat-desc">Aguardando</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-called">0</div>
+          <div class="stat-desc">Chamados</div>
+        </div>
+      </div>
+
+      <!-- Lista geral de clientes -->
+      <div class="section-header">
+        <div class="section-title">Clientes do Dia</div>
+        <div class="count-badge" id="rec-count">0</div>
+      </div>
+      <div class="client-list" id="reception-list">
+        <div class="empty">
+          <div class="empty-icon">📋</div>
+          Nenhum cliente cadastrado ainda.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TELA 2: ADVOGADO ── -->
+    <div id="view-lawyer" class="view">
+      <div class="page-title">Painel do Advogado</div>
+      <p class="page-sub">Selecione seu perfil para visualizar a fila de atendimento.</p>
+
+      <!-- Seleção de advogado -->
+      <div class="lawyer-selector">
+        <div class="lawyer-card" onclick="selectLawyer('Dr. André Costa', this)">
+          <div class="lawyer-avatar">AC</div>
+          <div>
+            <div class="lawyer-label">Dr. André Costa</div>
+            <div class="lawyer-sub">Direito Civil</div>
+          </div>
+        </div>
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Beatriz Melo', this)">
+          <div class="lawyer-avatar">BM</div>
+          <div>
+            <div class="lawyer-label">Dra. Beatriz Melo</div>
+            <div class="lawyer-sub">Direito Trabalhista</div>
+          </div>
+        </div>
+        <div class="lawyer-card" onclick="selectLawyer('Dr. Carlos Nunes', this)">
+          <div class="lawyer-avatar">CN</div>
+          <div>
+            <div class="lawyer-label">Dr. Carlos Nunes</div>
+            <div class="lawyer-sub">Direito Penal</div>
+          </div>
+        </div>
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Diana Faria', this)">
+          <div class="lawyer-avatar">DF</div>
+          <div>
+            <div class="lawyer-label">Dra. Diana Faria</div>
+            <div class="lawyer-sub">Direito Empresarial</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fila do advogado selecionado (oculta até selecionar) -->
+      <div id="lawyer-queue" style="display:none">
+        <div class="section-header">
+          <div class="section-title" id="lawyer-queue-title">Fila de Atendimento</div>
+          <div class="count-badge" id="lawyer-count">0</div>
+        </div>
+        <div class="client-list" id="lawyer-list"></div>
+      </div>
+    </div>
+
+    <!-- ── TELA 3: MONITOR DA RECEPÇÃO ── -->
+    <div id="view-monitor" class="view">
+      <div class="page-title">Monitor — Recepção</div>
+      <p class="page-sub">Esta tela deve ficar aberta na recepção. Notificações aparecem automaticamente.</p>
+
+      <!-- Indicador de conexão em tempo real -->
+      <div class="monitor-header">
+        <div class="live-dot"></div>
+        <div class="live-label">Escutando em tempo real</div>
+      </div>
+
+      <!-- Histórico de chamadas -->
+      <div class="card">
+        <div class="section-title" style="margin-bottom:0.8rem">📣 Últimas Chamadas</div>
+        <div class="client-list" id="monitor-list">
+          <div class="empty">
+            <div class="empty-icon">🔔</div>
+            Nenhuma chamada registrada.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TELA 4: CONFIGURAÇÃO FIREBASE ── -->
+    <div id="view-config" class="view">
+      <div class="page-title">Configuração Firebase</div>
+      <p class="page-sub">Insira as credenciais do seu projeto Firebase para ativar o sistema.</p>
+
+      <!-- Instruções -->
+      <div class="config-note">
+        <strong>Como configurar:</strong><br />
+        1. Acesse <strong>console.firebase.google.com</strong> e crie um projeto.<br />
+        2. Ative o <strong>Firestore Database</strong> em modo de teste.<br />
+        3. Em <em>Configurações do Projeto → Seus apps → Web</em>, copie o objeto <code>firebaseConfig</code>.<br />
+        4. Cole os valores abaixo e clique em <strong>Salvar &amp; Conectar</strong>.
+      </div>
+
+      <!-- Formulário de credenciais -->
+      <div class="card">
+        <div style="display:grid; gap:0.9rem">
+          <div>
+            <label>API Key</label>
+            <input type="text" id="cfg-apiKey" placeholder="AIza..." />
+          </div>
+          <div>
+            <label>Auth Domain</label>
+            <input type="text" id="cfg-authDomain" placeholder="projeto.firebaseapp.com" />
+          </div>
+          <div>
+            <label>Project ID</label>
+            <input type="text" id="cfg-projectId" placeholder="meu-projeto" />
+          </div>
+          <div>
+            <label>Storage Bucket</label>
+            <input type="text" id="cfg-storageBucket" placeholder="projeto.appspot.com" />
+          </div>
+          <div>
+            <label>Messaging Sender ID</label>
+            <input type="text" id="cfg-messagingSenderId" placeholder="123456789" />
+          </div>
+          <div>
+            <label>App ID</label>
+            <input type="text" id="cfg-appId" placeholder="1:123:web:abc" />
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="saveConfig()">✓ Salvar &amp; Conectar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-status" style="font-size:0.83rem; color:var(--muted); margin-top:0.5rem"></div>
+    </div>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════
+       POPUP — Notificação de chamada
+  ════════════════════════════════════════ -->
+  <div id="popup-overlay">
+    <div id="popup-box">
+      <span class="popup-glyph">📢</span>
+      <div class="popup-label">Chamada de Cliente</div>
+      <div class="popup-client" id="popup-name">—</div>
+      <div class="popup-lawyer">Ir para: <span id="popup-lawyer">—</span></div>
+      <!-- Barra de progresso do auto-fechamento -->
+      <div id="popup-timer-bar">
+        <div id="popup-timer-fill" style="width:100%"></div>
+      </div>
+      <button id="popup-ok">OK, Entendido</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TOAST — Feedback de ações
+  ════════════════════════════════════════ -->
+  <div id="toast"></div>
+
+  <!-- Script principal -->
+  <script src="app.js"></script>
+
+</body>
+</html>
