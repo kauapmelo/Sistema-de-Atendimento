@@ -100,6 +100,10 @@ async function addClient() {
   }
 }
 
+/* ═══════════════════════════════════════════════════
+   TELA 1 — RECEPÇÃO (ORDEM: AGUARDANDO PRIMEIRO)
+   ═══════════════════════════════════════════════════ */
+
 function renderReceptionList(snap) {
   const list = document.getElementById('reception-list');
   const docs = snap.docs;
@@ -110,8 +114,24 @@ function renderReceptionList(snap) {
     return;
   }
 
+  // --- NOVA LÓGICA DE ORDENAÇÃO ---
+  // Criamos uma cópia do array e ordenamos:
+  // Se d1 é 'aguardando' e d2 é 'chamado', d1 vem primeiro.
+  const sortedDocs = [...docs].sort((a, b) => {
+    const statusA = a.data().status;
+    const statusB = b.data().status;
+
+    if (statusA === 'aguardando' && statusB === 'chamado') return -1;
+    if (statusA === 'chamado' && statusB === 'aguardando') return 1;
+    
+    // Se o status for igual, mantém a ordem do timestamp original
+    return 0; 
+  });
+
   list.innerHTML = '';
-  docs.forEach(doc => {
+  
+  // Usamos o array ordenado (sortedDocs) para renderizar
+  sortedDocs.forEach(doc => {
     const d = doc.data();
     const called = d.status === 'chamado';
     const wait = formatWaitTime(d.timestamp);
@@ -120,7 +140,7 @@ function renderReceptionList(snap) {
     row.className = 'client-row';
     row.innerHTML = `
       <div class="client-info">
-        <div class="client-name">${escHtml(d.nome)}</div>
+        <div class="client-name">${escHtml(d.nome)} ${called ? ' (Chamado)' : ''}</div>
         <div class="client-meta">👤 ${escHtml(d.advogado)} · ⏱ ${wait.text}</div>
       </div>
       <span class="badge ${called ? 'badge-called' : 'badge-waiting'}">
