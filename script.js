@@ -237,12 +237,34 @@ function renderMonitorList(snap) {
 }
 
 function checkForNewCalls(snap) {
+  // Captura as duas telas
+  const monitorView = document.getElementById('view-monitor');
+  const receptionView = document.getElementById('view-reception');
+
+  // Só continua se o usuário estiver na tela de MONITOR OU na tela de RECEPÇÃO
+  const monitorAtivo = monitorView && monitorView.classList.contains('active');
+  const recepcaoAtiva = receptionView && receptionView.classList.contains('active');
+
+  if (!monitorAtivo && !recepcaoAtiva) {
+    return; // Se estiver na tela do Advogado (ou qualquer outra), não faz nada
+  }
+
   snap.docChanges().forEach(change => {
     if (change.type === 'added' || change.type === 'modified') {
       const data = change.doc.data();
+      
+      // Se status é chamado e ainda não mostramos o popup para este registro
       if (data.status === 'chamado' && data.notificado === false) {
-        popupQueue.push({ id: change.doc.id, nome: data.nome, advogado: data.advogado });
-        processPopupQueue();
+        // Evita duplicados na fila local
+        const jaNaLista = popupQueue.some(p => p.id === change.doc.id);
+        if (!jaNaLista) {
+          popupQueue.push({ 
+            id: change.doc.id, 
+            nome: data.nome, 
+            advogado: data.advogado 
+          });
+          processPopupQueue();
+        }
       }
     }
   });
