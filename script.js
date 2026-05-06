@@ -1,11 +1,10 @@
 /* ═══════════════════════════════════════════════════
-    LEXCALL — Lógica da Aplicação (script.js)
+   LEXCALL — Lógica da Aplicação
+   script.js
    ═══════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────
-   CONFIGURAÇÃO FIXA DO FIREBASE
-   Substitua os valores abaixo pelos seus dados 
-   que você copiou do Firebase Console
+   CONFIGURAÇÃO DO FIREBASE
 ───────────────────────────────────────── */
 const firebaseConfig = {
   apiKey: "AIzaSyAD60g-LUTuhdIKTI6Khg9FciFT08UGZEA",
@@ -37,17 +36,12 @@ window.telaAtivaAtual = 'reception';
 
 function initFirebase() {
   try {
-    // Evita inicializar o Firebase múltiplas vezes
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
-    
     db = firebase.firestore();
     startListeners();
-    
     console.log("✓ LexCall conectado ao Firebase.");
-    // Opcional: esconde o botão de config se quiser que o usuário não mexa
-    // document.querySelector('button[onclick="showView(\'config\')"]').style.display = 'none';
   } catch (err) {
     console.error('Erro ao conectar ao Firebase:', err);
     showToast('Erro de conexão. Verifique o script.js', true);
@@ -61,22 +55,12 @@ function initFirebase() {
 function showView(id) {
   window.telaAtivaAtual = id;
 
-  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  // Remove 'active' de todas as telas
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  
-  // Remove 'active' de todos os botões da navegação
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
 
-  // Ativa a tela solicitada
   const targetView = document.getElementById('view-' + id);
-  if (targetView) {
-    targetView.classList.add('active');
-  }
+  if (targetView) targetView.classList.add('active');
 
-  // Identifica qual botão ativar baseado na função chamada
-  // Isso garante que o destaque visual funcione mesmo sem o botão de config
   const btns = document.querySelectorAll('nav button');
   if (id === 'reception' && btns[0]) btns[0].classList.add('active');
   if (id === 'lawyer'    && btns[1]) btns[1].classList.add('active');
@@ -106,7 +90,6 @@ async function addClient() {
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       notificado: false
     });
-
     document.getElementById('inp-name').value = '';
     showToast(`${name} adicionado!`);
   } catch (err) {
@@ -147,11 +130,11 @@ function renderReceptionList(snap) {
 function updateStats(snap) {
   const docs = snap.docs;
   const waiting = docs.filter(d => d.data().status === 'aguardando').length;
-  const called = docs.filter(d => d.data().status === 'chamado').length;
+  const called  = docs.filter(d => d.data().status === 'chamado').length;
 
-  document.getElementById('stat-total').textContent = docs.length;
+  document.getElementById('stat-total').textContent   = docs.length;
   document.getElementById('stat-waiting').textContent = waiting;
-  document.getElementById('stat-called').textContent = called;
+  document.getElementById('stat-called').textContent  = called;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -159,20 +142,16 @@ function updateStats(snap) {
    ═══════════════════════════════════════════════════ */
 
 function selectLawyer(name, el) {
-  // 1. Destaque visual no menu de advogados
   document.querySelectorAll('.lawyer-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  
-  // 2. Define o advogado ativo GLOBALMENTE para o script
-  currentLawyer = name; 
+
+  currentLawyer = name;
 
   document.getElementById('lawyer-queue').style.display = 'block';
   document.getElementById('lawyer-queue-title').textContent = `Fila — ${name}`;
 
-  // 3. Limpa qualquer escuta anterior para não misturar dados
   if (unsubLawyer) unsubLawyer();
 
-  // 4. Escuta o banco ordenado por tempo
   unsubLawyer = db.collection('clientes')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
@@ -180,22 +159,15 @@ function selectLawyer(name, el) {
     });
 }
 
-/* ─────────────────────────────────────────
-    VERSÃO CORRIGIDA: TELA DO ADVOGADO
-───────────────────────────────────────── */
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
   const docs = snap.docs || [];
 
-  // 1. Filtra os clientes do advogado atual
   const meusClientes = docs.filter(doc => doc.data().advogado === currentLawyer);
+  const aguardando   = meusClientes.filter(doc => doc.data().status !== 'chamado');
+  const chamados     = meusClientes.filter(doc => doc.data().status === 'chamado');
+  const listaFinal   = [...aguardando, ...chamados];
 
-  // 2. Separa: Quem espera fica no topo, quem foi chamado vai para baixo
-  const aguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
-  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
-  const listaFinal = [...aguardando, ...chamados];
-
-  // Atualiza o contador (círculo azul)
   document.getElementById('lawyer-count').textContent = listaFinal.length;
 
   list.innerHTML = '';
@@ -205,22 +177,20 @@ function renderLawyerList(snap) {
     return;
   }
 
-  // 3. Renderiza com o visual original
   listaFinal.forEach((doc, i) => {
     const d = doc.data();
     const called = d.status === 'chamado';
-    
+
     const row = document.createElement('div');
-    row.className = 'client-row'; // Usa o visual padrão do seu CSS
-    
+    row.className = 'client-row';
     row.innerHTML = `
       <div class="pos-num">${i + 1}</div>
       <div class="client-info">
         <div class="client-name">${d.nome}</div>
         <div class="client-meta">${called ? '📢 Já chamado' : '⏱ Aguardando'}</div>
       </div>
-      <button class="btn btn-call" 
-        onclick="callClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')" 
+      <button class="btn btn-call"
+        onclick="callClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')"
         ${called ? 'disabled' : ''}>
         ${called ? 'Chamado' : '📢 Chamar'}
       </button>`;
@@ -247,10 +217,12 @@ async function callClient(docId, nome) {
 function renderMonitorList(snap) {
   const list = document.getElementById('monitor-list');
   const docs = snap.docs;
+
   if (docs.length === 0) {
     list.innerHTML = `<div class="empty">Nenhuma chamada.</div>`;
     return;
   }
+
   const sorted = [...docs].reverse();
   list.innerHTML = '';
   sorted.forEach(doc => {
@@ -267,22 +239,19 @@ function renderMonitorList(snap) {
 }
 
 function checkForNewCalls(snap) {
-  // BLOQUEIO DEFINITIVO: Se a variável diz que estamos no advogado, cancela tudo.
-  if (window.telaAtivaAtual === 'lawyer') {
-    return; // O código morre aqui. Nenhum popup vai para a fila.
-  }
+  if (window.telaAtivaAtual === 'lawyer') return;
 
   snap.docChanges().forEach(change => {
     if (change.type === 'added' || change.type === 'modified') {
       const data = change.doc.data();
-      
+
       if (data.status === 'chamado' && data.notificado === false) {
         const jaNaLista = popupQueue.some(p => p.id === change.doc.id);
         if (!jaNaLista) {
-          popupQueue.push({ 
-            id: change.doc.id, 
-            nome: data.nome, 
-            advogado: data.advogado 
+          popupQueue.push({
+            id: change.doc.id,
+            nome: data.nome,
+            advogado: data.advogado
           });
           processPopupQueue();
         }
@@ -300,16 +269,13 @@ function processPopupQueue() {
 }
 
 function showPopup(nome, advogado, docId) {
-  // VERIFICAÇÃO DE SEGURANÇA: 
-  // Se a tela do Advogado estiver ativa, cancelamos a exibição do popup aqui.
   const lawyerView = document.getElementById('view-lawyer');
   if (lawyerView && lawyerView.classList.contains('active')) {
     console.log("Popup bloqueado: Usuário está na tela do advogado.");
-    return; 
+    return;
   }
 
-  // Se passou pela trava, exibe o popup normalmente:
-  document.getElementById('popup-name').textContent = nome;
+  document.getElementById('popup-name').textContent   = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
   document.getElementById('popup-overlay').classList.add('show');
 
@@ -325,7 +291,6 @@ function showPopup(nome, advogado, docId) {
     if (elapsed >= 15000) closePopup();
   }, 100);
 
-  // Marca como notificado no banco para não repetir
   db.collection('clientes').doc(docId).update({ notificado: true });
   document.getElementById('popup-ok').onclick = closePopup;
 }
@@ -341,7 +306,6 @@ function closePopup() {
    ═══════════════════════════════════════════════════ */
 
 function startListeners() {
-  // Listener da Recepção (Lista Geral)
   unsubReception = db.collection('clientes')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
@@ -349,7 +313,6 @@ function startListeners() {
       updateStats(snap);
     }, err => console.error("Erro na Recepção:", err));
 
-  // Listener do Monitor (Apenas chamados) - Removido o orderBy para evitar erro de índice
   unsubMonitor = db.collection('clientes')
     .where('status', '==', 'chamado')
     .onSnapshot(snap => {
@@ -372,19 +335,17 @@ function escHtml(s) {
   return t.innerHTML;
 }
 
-function escAttr(s) {
-  return s.replace(/'/g, "\\'");
-}
-
 function showToast(msg, error = false) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.style.background = error ? '#e05252' : '#181c27';
+  el.style.background = error ? '#c0392b' : '#6b1a1a';
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// INICIALIZAÇÃO
+/* ─────────────────────────────────────────
+   INICIALIZAÇÃO
+───────────────────────────────────────── */
 document.getElementById('inp-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') addClient();
 });
