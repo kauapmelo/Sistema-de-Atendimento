@@ -31,7 +31,6 @@
       <button class="active" onclick="showView('reception')">Recepção</button>
       <button onclick="showView('lawyer')">Advogado</button>
       <button onclick="showView('monitor')">Monitor</button>
-      <button onclick="showView('config')" style="color:var(--gold-dim)">⚙ Config</button>
     </nav>
   </header>
 
@@ -166,56 +165,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- ── TELA 4: CONFIGURAÇÃO FIREBASE ── -->
-    <div id="view-config" class="view">
-      <div class="page-title">Configuração Firebase</div>
-      <p class="page-sub">Insira as credenciais do seu projeto Firebase para ativar o sistema.</p>
-
-      <!-- Instruções -->
-      <div class="config-note">
-        <strong>Como configurar:</strong><br />
-        1. Acesse <strong>console.firebase.google.com</strong> e crie um projeto.<br />
-        2. Ative o <strong>Firestore Database</strong> em modo de teste.<br />
-        3. Em <em>Configurações do Projeto → Seus apps → Web</em>, copie o objeto <code>firebaseConfig</code>.<br />
-        4. Cole os valores abaixo e clique em <strong>Salvar &amp; Conectar</strong>.
-      </div>
-
-      <!-- Formulário de credenciais -->
-      <div class="card">
-        <div style="display:grid; gap:0.9rem">
-          <div>
-            <label>API Key</label>
-            <input type="text" id="cfg-apiKey" placeholder="AIza..." />
-          </div>
-          <div>
-            <label>Auth Domain</label>
-            <input type="text" id="cfg-authDomain" placeholder="projeto.firebaseapp.com" />
-          </div>
-          <div>
-            <label>Project ID</label>
-            <input type="text" id="cfg-projectId" placeholder="meu-projeto" />
-          </div>
-          <div>
-            <label>Storage Bucket</label>
-            <input type="text" id="cfg-storageBucket" placeholder="projeto.appspot.com" />
-          </div>
-          <div>
-            <label>Messaging Sender ID</label>
-            <input type="text" id="cfg-messagingSenderId" placeholder="123456789" />
-          </div>
-          <div>
-            <label>App ID</label>
-            <input type="text" id="cfg-appId" placeholder="1:123:web:abc" />
-          </div>
-          <div>
-            <button class="btn btn-primary" onclick="saveConfig()">✓ Salvar &amp; Conectar</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="cfg-status" style="font-size:0.83rem; color:var(--muted); margin-top:0.5rem"></div>
     </div>
 
   </main>

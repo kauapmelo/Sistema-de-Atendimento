@@ -57,18 +57,24 @@ function initFirebase() {
    ═══════════════════════════════════════════════════ */
 
 function showView(id) {
+  // Remove 'active' de todas as telas
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  
+  // Remove 'active' de todos os botões da navegação
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
 
+  // Ativa a tela solicitada
   const targetView = document.getElementById('view-' + id);
-  if (targetView) targetView.classList.add('active');
+  if (targetView) {
+    targetView.classList.add('active');
+  }
 
-  // Mapeamento dos botões (Recepção=0, Advogado=1, Monitor=2, Config=3)
+  // Identifica qual botão ativar baseado na função chamada
+  // Isso garante que o destaque visual funcione mesmo sem o botão de config
   const btns = document.querySelectorAll('nav button');
-  if (id === 'reception') btns[0].classList.add('active');
-  if (id === 'lawyer')    btns[1].classList.add('active');
-  if (id === 'monitor')   btns[2].classList.add('active');
-  if (id === 'config')    btns[3].classList.add('active');
+  if (id === 'reception' && btns[0]) btns[0].classList.add('active');
+  if (id === 'lawyer'    && btns[1]) btns[1].classList.add('active');
+  if (id === 'monitor'   && btns[2]) btns[2].classList.add('active');
 }
 
 /* ═══════════════════════════════════════════════════
