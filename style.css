@@ -69,7 +69,7 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  height: 70px; /* Aumentei um pouco para o brasão respirar */
+  height: 80px; /* Aumentei um pouco para o brasão respirar */
   background: var(--bordo);
   border-bottom: 3px solid var(--bordo3);
   position: sticky;
@@ -81,7 +81,7 @@ header {
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px; /* Espaço entre a imagem e o texto */
+  gap: 15px; /* Espaço entre a imagem e o texto */
   font-family: 'Playfair Display', serif;
   font-size: 1.6rem;
   font-weight: 700;
@@ -89,7 +89,7 @@ header {
 }
 
 .logo-img {
-  height: 45px; /* Altura fixa para o brasão não deformar a barra */
+  height: 60px; /* Altura fixa para o brasão não deformar a barra */
   width: auto;
   object-fit: contain;
 }
