@@ -89,7 +89,7 @@ header {
 }
 
 .logo-img {
-  height: 60px; /* Altura fixa para o brasão não deformar a barra */
+  height: 100px; /* Altura fixa para o brasão não deformar a barra */
   width: auto;
   object-fit: contain;
 }
