@@ -159,18 +159,20 @@ function updateStats(snap) {
    ═══════════════════════════════════════════════════ */
 
 function selectLawyer(name, el) {
-  // 1. Interface visual
+  // 1. Destaque visual no menu de advogados
   document.querySelectorAll('.lawyer-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  currentLawyer = name; // Define quem é o advogado ativo
+  
+  // 2. Define o advogado ativo GLOBALMENTE para o script
+  currentLawyer = name; 
 
   document.getElementById('lawyer-queue').style.display = 'block';
   document.getElementById('lawyer-queue-title').textContent = `Fila — ${name}`;
 
-  // 2. Escuta TODOS os clientes (mas vamos filtrar no código abaixo)
-  // Usar apenas orderBy evita a necessidade de criar índices manuais no Firebase
+  // 3. Limpa qualquer escuta anterior para não misturar dados
   if (unsubLawyer) unsubLawyer();
 
+  // 4. Escuta o banco ordenado por tempo
   unsubLawyer = db.collection('clientes')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
@@ -181,18 +183,21 @@ function selectLawyer(name, el) {
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
   
-  // 3. FILTRO MANUAL: Aqui filtramos apenas os clientes do advogado selecionado
-  const clientesDoAdvogado = snap.docs.filter(doc => doc.data().advogado === currentLawyer);
-  
-  document.getElementById('lawyer-count').textContent = clientesDoAdvogado.length;
+  // FILTRO DEFINITIVO: Só entram na lista clientes que pertencem ao advogado selecionado
+  const clientesPrivados = snap.docs.filter(doc => {
+    const dados = doc.data();
+    return dados.advogado === currentLawyer; 
+  });
 
-  if (clientesDoAdvogado.length === 0) {
+  document.getElementById('lawyer-count').textContent = clientesPrivados.length;
+
+  if (clientesPrivados.length === 0) {
     list.innerHTML = `<div class="empty">Nenhum cliente na sua fila.</div>`;
     return;
   }
 
   list.innerHTML = '';
-  clientesDoAdvogado.forEach((doc, i) => {
+  clientesPrivados.forEach((doc, i) => {
     const d = doc.data();
     const called = d.status === 'chamado';
     
@@ -204,7 +209,9 @@ function renderLawyerList(snap) {
         <div class="client-name">${escHtml(d.nome)}</div>
         <div class="client-meta">${called ? '📢 Já chamado' : '⏱ Aguardando'}</div>
       </div>
-      <button class="btn btn-call" onclick="callClient('${doc.id}', '${escAttr(d.nome)}')" ${called ? 'disabled' : ''}>
+      <button class="btn btn-call" 
+        onclick="callClient('${doc.id}', '${escAttr(d.nome)}')" 
+        ${called ? 'disabled' : ''}>
         ${called ? 'Chamado' : '📢 Chamar'}
       </button>`;
     list.appendChild(row);
