@@ -19,7 +19,7 @@
   <header>
     <div class="logo">
       <div class="logo-icon"></div>
-      LexCall
+      A.P
     </div>
     <nav>
       <button class="active" onclick="showView('reception')">Recepção</button>
@@ -45,10 +45,10 @@
             <label for="inp-lawyer">Advogado</label>
             <select id="inp-lawyer">
               <option value="">— Selecione —</option>
-              <option value="Dr. André Costa">Dr. André Costa</option>
-              <option value="Dra. Beatriz Melo">Dra. Beatriz Melo</option>
-              <option value="Dr. Carlos Nunes">Dr. Carlos Nunes</option>
-              <option value="Dra. Diana Faria">Dra. Diana Faria</option>
+              <option value="Dra. Anária Pereira">Dra. Anária Pereira</option>
+              <option value="Dr. Gabriel Pereira">Dr. Gabriel Pereira</option>
+              <option value="Dra. Priscilla Saraiva">Dra. Priscilla Saraiva</option>
+              <option value="Dra. Bárbara Ferreira">Dra. Barbara Ferreira</option>
             </select>
           </div>
           <div>
@@ -61,7 +61,7 @@
       <div class="stats-row">
         <div class="stat-box">
           <div class="stat-num" id="stat-total">0</div>
-          <div class="stat-desc">Total hoje</div>
+          <div class="stat-desc">Total</div>
         </div>
         <div class="stat-box">
           <div class="stat-num" id="stat-waiting">0</div>
@@ -74,7 +74,7 @@
       </div>
 
       <div class="section-header">
-        <div class="section-title">Clientes do Dia</div>
+        <div class="section-title">Clientes</div>
         <div class="count-badge" id="rec-count">0</div>
       </div>
       <div class="client-list" id="reception-list">
@@ -91,32 +91,32 @@
       <p class="page-sub">Selecione seu perfil para visualizar a fila de atendimento.</p>
 
       <div class="lawyer-selector">
-        <div class="lawyer-card" onclick="selectLawyer('Dr. André Costa', this)">
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Anária Pereira', this)">
           <div class="lawyer-avatar">AC</div>
           <div>
-            <div class="lawyer-label">Dr. André Costa</div>
-            <div class="lawyer-sub">Direito Civil</div>
+            <div class="lawyer-label">Dra. Anária Pereira</div>
+            <div class="lawyer-sub">Direito Previdenciário</div>
           </div>
         </div>
-        <div class="lawyer-card" onclick="selectLawyer('Dra. Beatriz Melo', this)">
+        <div class="lawyer-card" onclick="selectLawyer('Dr. Gabriel Pereira', this)">
           <div class="lawyer-avatar">BM</div>
           <div>
-            <div class="lawyer-label">Dra. Beatriz Melo</div>
-            <div class="lawyer-sub">Direito Trabalhista</div>
+            <div class="lawyer-label">Dr. Gabriel Pereira</div>
+            <div class="lawyer-sub">Direito Previdenciário</div>
           </div>
         </div>
-        <div class="lawyer-card" onclick="selectLawyer('Dr. Carlos Nunes', this)">
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Priscilla Saraiva', this)">
           <div class="lawyer-avatar">CN</div>
           <div>
-            <div class="lawyer-label">Dr. Carlos Nunes</div>
-            <div class="lawyer-sub">Direito Penal</div>
+            <div class="lawyer-label">Dra. Priscilla Saraiva</div>
+            <div class="lawyer-sub">Direito Previdenciário & Trabalhista</div>
           </div>
         </div>
-        <div class="lawyer-card" onclick="selectLawyer('Dra. Diana Faria', this)">
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Bárbara Ferreira', this)">
           <div class="lawyer-avatar">DF</div>
           <div>
-            <div class="lawyer-label">Dra. Diana Faria</div>
-            <div class="lawyer-sub">Direito Empresarial</div>
+            <div class="lawyer-label">Dra. Bárbara Ferreira</div>
+            <div class="lawyer-sub">Direito Previdenciário & Imobiliária</div>
           </div>
         </div>
       </div>
