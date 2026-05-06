@@ -245,28 +245,6 @@ function renderLawyerList(snap) {
   });
 }
 
-  list.innerHTML = '';
-  clientesPrivados.forEach((doc, i) => {
-    const d = doc.data();
-    const called = d.status === 'chamado';
-    
-    const row = document.createElement('div');
-    row.className = 'client-row';
-    row.innerHTML = `
-      <div class="pos-num">${i + 1}</div>
-      <div class="client-info">
-        <div class="client-name">${escHtml(d.nome)}</div>
-        <div class="client-meta">${called ? '📢 Já chamado' : '⏱ Aguardando'}</div>
-      </div>
-      <button class="btn btn-call" 
-        onclick="callClient('${doc.id}', '${escAttr(d.nome)}')" 
-        ${called ? 'disabled' : ''}>
-        ${called ? 'Chamado' : '📢 Chamar'}
-      </button>`;
-    list.appendChild(row);
-  });
-
-
 async function callClient(docId, nome) {
   try {
     await db.collection('clientes').doc(docId).update({
