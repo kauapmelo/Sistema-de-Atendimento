@@ -182,25 +182,68 @@ function selectLawyer(name, el) {
 
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
-  
-  // 1. Filtra os clientes do advogado
-  const meusClientes = snap.docs.filter(doc => doc.data().advogado === currentLawyer);
+  if (!list) return; // Segurança caso o elemento sumas da tela
 
-  // 2. JEITO FÁCIL: Cria duas listas e junta elas (Aguardando no topo)
-  const aguardando = meusClientes.filter(doc => doc.data().status === 'aguardando');
-  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
-  
-  // Junta as duas: os que esperam primeiro, os chamados depois
-  const listaFinal = [...aguardando, ...chamados];
+  // 1. Pega os documentos com segurança
+  const docs = snap.docs || [];
 
-  // 3. Agora é só rodar o seu forEach normal com a "listaFinal"
-  document.getElementById('lawyer-count').textContent = listaFinal.length;
+  // 2. Filtra apenas os clientes do advogado atual (com check de segurança no data)
+  const meusClientes = docs.filter(doc => {
+    const data = doc.data();
+    return data && data.advogado === currentLawyer;
+  });
+
+  // 3. SEPARA: Usamos !== 'chamado' para garantir que qualquer outro status suba
+  const listaAguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
+  const listaChamados = meusClientes.filter(doc => doc.data().status === 'chamado');
+
+  // 4. JUNTA: Aguardando sempre no topo
+  const listaFinal = [...listaAguardando, ...listaChamados];
+
+  // Atualiza contador
+  const countEl = document.getElementById('lawyer-count');
+  if (countEl) countEl.textContent = listaFinal.length;
+
   list.innerHTML = '';
 
   if (listaFinal.length === 0) {
     list.innerHTML = `<div class="empty">Nenhum cliente na sua fila.</div>`;
     return;
   }
+
+  listaFinal.forEach((doc, i) => {
+    const d = doc.data();
+    const isCalled = d.status === 'chamado';
+    
+    // Proteção para o nome: se estiver vazio, coloca "Sem Nome"
+    const nomeCliente = d.nome || 'Sem Nome';
+    
+    // Proteção para o clique: escapa aspas simples para não quebrar o onclick
+    const nomeParaBotao = nomeCliente.replace(/'/g, "\\'");
+
+    const row = document.createElement('div');
+    row.className = 'client-row';
+    
+    // Destaque visual: Fundo levemente azul para quem ainda não foi chamado
+    if (!isCalled) {
+      row.style.borderLeft = '5px solid #28a745';
+      row.style.backgroundColor = '#f8ffff';
+    }
+
+    row.innerHTML = `
+      <div class="pos-num">${i + 1}</div>
+      <div class="client-info">
+        <div class="client-name"><strong>${nomeCliente}</strong></div>
+        <div class="client-meta">${isCalled ? '✅ Já chamado' : '⏳ Aguardando...'}</div>
+      </div>
+      <button class="btn btn-call" 
+        onclick="callClient('${doc.id}', '${nomeParaBotao}')" 
+        ${isCalled ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+        ${isCalled ? 'Chamado' : '📢 Chamar'}
+      </button>`;
+    list.appendChild(row);
+  });
+}
 
   list.innerHTML = '';
   clientesPrivados.forEach((doc, i) => {
@@ -222,7 +265,7 @@ function renderLawyerList(snap) {
       </button>`;
     list.appendChild(row);
   });
-}
+
 
 async function callClient(docId, nome) {
   try {
