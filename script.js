@@ -183,15 +183,21 @@ function selectLawyer(name, el) {
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
   
-  // FILTRO DEFINITIVO: Só entram na lista clientes que pertencem ao advogado selecionado
-  const clientesPrivados = snap.docs.filter(doc => {
-    const dados = doc.data();
-    return dados.advogado === currentLawyer; 
-  });
+  // 1. Filtra os clientes do advogado
+  const meusClientes = snap.docs.filter(doc => doc.data().advogado === currentLawyer);
 
-  document.getElementById('lawyer-count').textContent = clientesPrivados.length;
+  // 2. JEITO FÁCIL: Cria duas listas e junta elas (Aguardando no topo)
+  const aguardando = meusClientes.filter(doc => doc.data().status === 'aguardando');
+  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
+  
+  // Junta as duas: os que esperam primeiro, os chamados depois
+  const listaFinal = [...aguardando, ...chamados];
 
-  if (clientesPrivados.length === 0) {
+  // 3. Agora é só rodar o seu forEach normal com a "listaFinal"
+  document.getElementById('lawyer-count').textContent = listaFinal.length;
+  list.innerHTML = '';
+
+  if (listaFinal.length === 0) {
     list.innerHTML = `<div class="empty">Nenhum cliente na sua fila.</div>`;
     return;
   }
