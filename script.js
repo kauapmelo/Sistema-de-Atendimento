@@ -189,59 +189,64 @@ function renderLawyerList(snap) {
 
   const docs = snap.docs || [];
 
-  // 1. Filtra apenas os clientes do advogado que está clicado
+  // 1. Filtra apenas os clientes do advogado selecionado
   const meusClientes = docs.filter(doc => {
     const data = doc.data();
+    // Verifica se o nome do advogado no banco é igual ao selecionado no card
     return data && data.advogado === currentLawyer;
   });
 
-  // 2. SEPARA: Quem ainda não foi chamado vai para o topo
-  const aguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
-  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
+  // 2. SEPARA: Aguardando no topo e Chamados no fim
+  const listaAguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
+  const listaChamados = meusClientes.filter(doc => doc.data().status === 'chamado');
 
-  // 3. JUNTA: Lista de espera primeiro
-  const listaFinal = [...aguardando, ...chamados];
+  // 3. JUNTA: Cria a lista final organizada
+  const listaFinal = [...listaAguardando, ...listaChamados];
 
-  // Atualiza o número de pessoas na fila
+  // Atualiza o círculo azul (contador) que aparece na sua imagem
   const countEl = document.getElementById('lawyer-count');
   if (countEl) countEl.textContent = listaFinal.length;
 
-  // Limpa a tela para desenhar do zero
+  // Limpa a área da lista para desenhar
   list.innerHTML = '';
 
   if (listaFinal.length === 0) {
-    list.innerHTML = `<div class="empty">Nenhum cliente na sua fila.</div>`;
+    list.innerHTML = `<div class="empty" style="color: #666; padding: 20px;">Nenhum cliente na fila de ${currentLawyer}.</div>`;
     return;
   }
 
-  // 4. DESENHA OS CARDS
+  // 4. DESENHA CADA CLIENTE
   listaFinal.forEach((doc, i) => {
     const d = doc.data();
     const isCalled = d.status === 'chamado';
     const nomeCliente = d.nome || 'Sem Nome';
     
-    // Evita erro se o nome tiver aspas (ex: D'água)
-    const nomeTratado = nomeCliente.replace(/'/g, "\\'");
+    // Tratamento para não quebrar o clique do botão
+    const nomeParaBotao = nomeCliente.replace(/'/g, "\\'");
 
     const row = document.createElement('div');
     row.className = 'client-row';
     
-    // Destaque visual para quem o advogado ainda precisa chamar
-    if (!isCalled) {
-      row.style.borderLeft = '5px solid #28a745';
-      row.style.backgroundColor = '#f8ffff';
-    }
+    // Estilo da linha (ajustado para combinar com seu layout escuro)
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.padding = '15px';
+    row.style.marginBottom = '10px';
+    row.style.background = isCalled ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)';
+    row.style.borderRadius = '8px';
+    if (!isCalled) row.style.borderLeft = '4px solid #d4af37'; // Destaque dourado LexCall
 
     row.innerHTML = `
-      <div class="pos-num" style="font-weight:bold; width:30px">${i + 1}</div>
-      <div class="client-info" style="flex:1">
-        <div class="client-name"><strong>${nomeCliente}</strong></div>
-        <div class="client-meta">${isCalled ? '✅ Já foi chamado' : '⏳ Aguardando...'}</div>
+      <div style="font-size: 1.2rem; font-weight: bold; margin-right: 20px; color: #d4af37;">${i + 1}</div>
+      <div style="flex: 1;">
+        <div style="font-size: 1.1rem; color: #fff;">${nomeCliente}</div>
+        <div style="font-size: 0.85rem; color: #aaa;">${isCalled ? '✅ Chamado' : '⏳ Aguardando atendimento'}</div>
       </div>
       <button class="btn btn-call" 
-        onclick="callClient('${doc.id}', '${nomeTratado}')" 
-        ${isCalled ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
-        ${isCalled ? 'Chamado' : '📢 Chamar'}
+        onclick="callClient('${doc.id}', '${nomeParaBotao}')" 
+        style="padding: 8px 20px; cursor: pointer; border-radius: 5px; border: none; background: ${isCalled ? '#444' : '#d4af37'}; color: ${isCalled ? '#888' : '#000'}; font-weight: bold;"
+        ${isCalled ? 'disabled' : ''}>
+        ${isCalled ? 'Chamado' : 'Chamar'}
       </button>`;
     list.appendChild(row);
   });
