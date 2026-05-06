@@ -6,14 +6,17 @@
 /* ─────────────────────────────────────────
    CONFIGURAÇÃO DO FIREBASE
 ───────────────────────────────────────── */
+require('dotenv').config();
+
+// 2. Usar as variáveis de ambiente no objeto de configuração
 const firebaseConfig = {
-  apiKey: "AIzaSyAD60g-LUTuhdIKTI6Khg9FciFT08UGZEA",
-  authDomain: "sistema-de-atendimento-d2430.firebaseapp.com",
-  projectId: "sistema-de-atendimento-d2430",
-  storageBucket: "sistema-de-atendimento-d2430.firebasestorage.app",
-  messagingSenderId: "426359681494",
-  appId: "1:426359681494:web:90ab35cea70e8cc345f477",
-  measurementId: "G-4H0XYXTZCM"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 /* ─────────────────────────────────────────
