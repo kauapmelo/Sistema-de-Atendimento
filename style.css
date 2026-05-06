@@ -88,28 +88,23 @@ header {
 .logo {
   display: flex;
   align-items: center;
-  padding-left: 20px;
-  /* Dá um recuo da borda da tela */
+  gap: 15px;
 }
 
 .logo span {
-  font-size: 2.2rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem; /* Combinando com o tamanho do brasão */
   font-weight: 800;
-  /* Se o A.P ainda estiver desalinhado, use o margin-top abaixo: */
-  /* margin-top: 5px; */
+  color: #f5ede0; 
+  text-transform: uppercase;
 }
 
 .logo-img {
-  height: 60px;
-  /* Mantemos uma altura razoável para não quebrar a barra */
+  height: 85px; /* Agora que não tem fundo, pode ser grande! */
   width: auto;
   object-fit: contain;
-  transform: scale(2.5);
-  /* Isso vai dar um "zoom" de 2.5x apenas no desenho */
-  transform-origin: center;
-  /* Garante que o zoom seja do centro */
-  margin-right: 25px;
-  /* Aumentamos a margem para compensar o zoom */
+  /* Isso aqui remove qualquer "serrilhado" que a remoção de fundo possa ter deixado */
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
 
