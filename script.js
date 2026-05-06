@@ -33,6 +33,8 @@ let unsubMonitor = null;
    FIREBASE — INICIALIZAÇÃO AUTOMÁTICA
    ═══════════════════════════════════════════════════ */
 
+window.telaAtivaAtual = 'reception';
+
 function initFirebase() {
   try {
     // Evita inicializar o Firebase múltiplas vezes
@@ -57,6 +59,10 @@ function initFirebase() {
    ═══════════════════════════════════════════════════ */
 
 function showView(id) {
+  window.telaAtivaAtual = id;
+
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
   // Remove 'active' de todas as telas
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   
@@ -237,25 +243,16 @@ function renderMonitorList(snap) {
 }
 
 function checkForNewCalls(snap) {
-  // Captura as duas telas
-  const monitorView = document.getElementById('view-monitor');
-  const receptionView = document.getElementById('view-reception');
-
-  // Só continua se o usuário estiver na tela de MONITOR OU na tela de RECEPÇÃO
-  const monitorAtivo = monitorView && monitorView.classList.contains('active');
-  const recepcaoAtiva = receptionView && receptionView.classList.contains('active');
-
-  if (!monitorAtivo && !recepcaoAtiva) {
-    return; // Se estiver na tela do Advogado (ou qualquer outra), não faz nada
+  // BLOQUEIO DEFINITIVO: Se a variável diz que estamos no advogado, cancela tudo.
+  if (window.telaAtivaAtual === 'lawyer') {
+    return; // O código morre aqui. Nenhum popup vai para a fila.
   }
 
   snap.docChanges().forEach(change => {
     if (change.type === 'added' || change.type === 'modified') {
       const data = change.doc.data();
       
-      // Se status é chamado e ainda não mostramos o popup para este registro
       if (data.status === 'chamado' && data.notificado === false) {
-        // Evita duplicados na fila local
         const jaNaLista = popupQueue.some(p => p.id === change.doc.id);
         if (!jaNaLista) {
           popupQueue.push({ 
