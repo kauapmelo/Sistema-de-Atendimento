@@ -839,3 +839,29 @@ select option {
     padding: 2rem 1.5rem;
   }
 }
+
+/* Garante que o container da foto seja redondo e esconda as bordas da imagem */
+.lawyer-avatar {
+  width: 65px;          /* Isso controla o tamanho real que você vê no site */
+  height: 65px;         /* Precisa ser igual à largura */
+  border-radius: 50%;   /* Transforma o quadrado em círculo */
+  overflow: hidden;     /* Esconde o resto da imagem gigante */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #c9a55c;
+  flex-shrink: 0;       /* Impede que o círculo amasse */
+}
+
+/* Estilização da imagem dentro da bolinha */
+.avatar-img {
+  width: 100%;          /* Obriga a imagem a encolher para caber nos 65px */
+  height: 100%;
+  object-fit: cover;    /* Preenche o círculo sem deformar o rosto */
+}
+
+/* Efeito visual quando o advogado for selecionado */
+.lawyer-card.selected .lawyer-avatar {
+  border-color: var(--bordo);
+  box-shadow: 0 0 8px var(--bordo-glow2);
+}
