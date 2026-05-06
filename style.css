@@ -97,12 +97,13 @@ header {
 
 .brand-title {
   font-family: 'Playfair Display', serif;
-  font-size: 16px !important; /* Ajuste aqui: 16px é pequeno e elegante */
-  font-weight: 800;           /* Mantém o peso do estilo anterior */
-  color: #f5ede0;             /* Cor original que você estava usando */
-  margin: 0;
-  letter-spacing: 1px;        /* Espaçamento clássico */
+  font-size: 20px !important; /* Metade do tamanho original, ajustável */
+  font-weight: 800;
+  color: #f5ede0;
   text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 1px;
+  display: block; /* Garante que se comporte como texto puro */
 }
 
 @media (max-width: 1024px) {
