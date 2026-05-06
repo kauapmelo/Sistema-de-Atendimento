@@ -159,52 +159,43 @@ function updateStats(snap) {
    ═══════════════════════════════════════════════════ */
 
 function selectLawyer(name, el) {
-  // 1. Interface visual: destaca o card selecionado
+  // 1. Interface visual
   document.querySelectorAll('.lawyer-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  currentLawyer = name;
+  currentLawyer = name; // Define quem é o advogado ativo
 
-  // 2. Prepara a tela
   document.getElementById('lawyer-queue').style.display = 'block';
   document.getElementById('lawyer-queue-title').textContent = `Fila — ${name}`;
 
-  // 3. LIMPEZA CRÍTICA: Cancela a escuta anterior antes de começar uma nova
-  // Isso evita que nomes de um advogado "vazem" para a tela de outro
-  if (unsubLawyer) {
-    unsubLawyer(); 
-  }
+  // 2. Escuta TODOS os clientes (mas vamos filtrar no código abaixo)
+  // Usar apenas orderBy evita a necessidade de criar índices manuais no Firebase
+  if (unsubLawyer) unsubLawyer();
 
-  // 4. CONSULTA FILTRADA: Busca no Firebase APENAS onde o advogado é igual ao selecionado
   unsubLawyer = db.collection('clientes')
-    .where('advogado', '==', name) // Filtro rigoroso pelo nome do advogado
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
       renderLawyerList(snap);
-    }, err => {
-      console.error("Erro ao carregar fila específica:", err);
     });
 }
 
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
-  const docs = snap.docs;
   
-  // Atualiza o contador apenas com os clientes desse advogado
-  document.getElementById('lawyer-count').textContent = docs.length;
+  // 3. FILTRO MANUAL: Aqui filtramos apenas os clientes do advogado selecionado
+  const clientesDoAdvogado = snap.docs.filter(doc => doc.data().advogado === currentLawyer);
+  
+  document.getElementById('lawyer-count').textContent = clientesDoAdvogado.length;
 
-  if (docs.length === 0) {
+  if (clientesDoAdvogado.length === 0) {
     list.innerHTML = `<div class="empty">Nenhum cliente na sua fila.</div>`;
     return;
   }
 
   list.innerHTML = '';
-  docs.forEach((doc, i) => {
+  clientesDoAdvogado.forEach((doc, i) => {
     const d = doc.data();
-    
-    // Verificação extra de segurança no código (Double Check)
-    if (d.advogado !== currentLawyer) return;
-
     const called = d.status === 'chamado';
+    
     const row = document.createElement('div');
     row.className = 'client-row';
     row.innerHTML = `
