@@ -97,19 +97,17 @@ header {
 
 .brand-title {
   font-family: 'Playfair Display', serif;
-  font-size: 1.8rem;
+  font-size: 14px !important; /* Teste 14px, se quiser menor use 12px */
   font-weight: 800;
   color: #f5ede0;
   margin: 0;
   letter-spacing: 2px;
-  /* Alinha o título do sistema com o meio do brasão */
-  display: flex;
-  align-items: center;
+  text-transform: uppercase;
 }
 
 @media (max-width: 1024px) {
   .brand-title {
-    font-size: 1.3rem;
+    font-size: 12px !important;
   }
 
   .brand-crest {
@@ -125,15 +123,6 @@ header {
   display: flex;
   align-items: center;
   gap: 15px;
-}
-
-.logo span {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.5rem;
-  /* Combinando com o tamanho do brasão */
-  font-weight: 800;
-  color: #f5ede0;
-  text-transform: uppercase;
 }
 
 .logo-img {
