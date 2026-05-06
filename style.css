@@ -69,7 +69,7 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  height: 64px;
+  height: 70px; /* Aumentei um pouco para o brasão respirar */
   background: var(--bordo);
   border-bottom: 3px solid var(--bordo3);
   position: sticky;
@@ -79,29 +79,21 @@ header {
 }
 
 .logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #f5ede0;
-  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 12px; /* Espaço entre a imagem e o texto */
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #f5ede0;
 }
 
 .logo-img {
-    width: 40px;  /* Ajuste conforme necessário */
-    height: 40px;
-    object-fit: contain;
-    margin-right: 10px;
+  height: 45px; /* Altura fixa para o brasão não deformar a barra */
+  width: auto;
+  object-fit: contain;
 }
 
-.logo-icon {
-  width: 26px;
-  height: 26px;
-  background: #c9a87a;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-}
 
 nav { display: flex; gap: 0.25rem; }
 
