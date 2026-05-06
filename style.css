@@ -74,15 +74,51 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  height: 80px;
-  /* Aumentei um pouco para o brasão respirar */
-  background: var(--bordo);
-  border-bottom: 3px solid var(--bordo3);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 4px 20px rgba(107, 26, 26, 0.35);
+  padding: 0 30px;
+  height: 120px;
+  /* Aumentamos um pouco para acomodar a logo completa */
+  background-color: #4a1414;
+  border-bottom: 2px solid #c9a55c;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  /* Espaço entre a logo completa e o título */
+}
+
+.brand-crest {
+  height: 100px;
+  /* Altura maior para a frase da imagem aparecer bem */
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #f5ede0;
+  margin: 0;
+  letter-spacing: 2px;
+  /* Alinha o título do sistema com o meio do brasão */
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .brand-title {
+    font-size: 1.3rem;
+  }
+
+  .brand-crest {
+    height: 80px;
+  }
+
+  header {
+    height: 100px;
+  }
 }
 
 .logo {
@@ -93,14 +129,16 @@ header {
 
 .logo span {
   font-family: 'Playfair Display', serif;
-  font-size: 2.5rem; /* Combinando com o tamanho do brasão */
+  font-size: 2.5rem;
+  /* Combinando com o tamanho do brasão */
   font-weight: 800;
-  color: #f5ede0; 
+  color: #f5ede0;
   text-transform: uppercase;
 }
 
 .logo-img {
-  height: 85px; /* Agora que não tem fundo, pode ser grande! */
+  height: 85px;
+  /* Agora que não tem fundo, pode ser grande! */
   width: auto;
   object-fit: contain;
   /* Isso aqui remove qualquer "serrilhado" que a remoção de fundo possa ter deixado */
