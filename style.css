@@ -95,28 +95,27 @@ header {
   object-fit: contain;
 }
 
+/* 1. O estilo principal */
 .brand-title {
   font-family: 'Playfair Display', serif;
-  font-size: 20px !important; /* Metade do tamanho original, ajustável */
+  font-size: 18px !important; /* Fixamos em pixels para não ter erro */
   font-weight: 800;
   color: #f5ede0;
   text-transform: uppercase;
   margin: 0;
   letter-spacing: 1px;
-  display: block; /* Garante que se comporte como texto puro */
 }
 
+/* 2. Ajuste o Media Query para não aumentar o texto de volta */
 @media (max-width: 1024px) {
   .brand-title {
-    font-size: 12px !important;
+    font-size: 14px !important; /* Menor ainda em tablets/celulares */
   }
-
   .brand-crest {
-    height: 80px;
+    height: 60px;
   }
-
   header {
-    height: 100px;
+    height: 80px;
   }
 }
 
