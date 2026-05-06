@@ -97,18 +97,12 @@ header {
 
 .brand-title {
   font-family: 'Playfair Display', serif;
-  font-size: 14px !important;
-  /* Tamanho pequeno, mas legível */
-  font-weight: 700;
-  /* Um pouco mais de peso para aparecer */
-  color: #ffffff !important;
-  /* Branco puro para dar contraste no bordô */
+  font-size: 16px !important; /* Ajuste aqui: 16px é pequeno e elegante */
+  font-weight: 800;           /* Mantém o peso do estilo anterior */
+  color: #f5ede0;             /* Cor original que você estava usando */
   margin: 0;
-  letter-spacing: 1px;
-  /* Espaçamento menor para não sumir */
+  letter-spacing: 1px;        /* Espaçamento clássico */
   text-transform: uppercase;
-  opacity: 1 !important;
-  /* Garante que não esteja transparente */
 }
 
 @media (max-width: 1024px) {
