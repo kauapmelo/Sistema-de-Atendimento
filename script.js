@@ -189,24 +189,24 @@ function renderLawyerList(snap) {
 
   const docs = snap.docs || [];
 
-  // 1. Filtra apenas os clientes do advogado atual
+  // 1. Filtra apenas os clientes do advogado que está clicado
   const meusClientes = docs.filter(doc => {
     const data = doc.data();
     return data && data.advogado === currentLawyer;
   });
 
-  // 2. SEPARA: Aguardando (topo) e Chamados (fim)
-  const listaAguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
-  const listaChamados = meusClientes.filter(doc => doc.data().status === 'chamado');
+  // 2. SEPARA: Quem ainda não foi chamado vai para o topo
+  const aguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
+  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
 
-  // 3. JUNTA: O "Chamar" fica sempre nas primeiras opções
-  const listaFinal = [...listaAguardando, ...listaChamados];
+  // 3. JUNTA: Lista de espera primeiro
+  const listaFinal = [...aguardando, ...chamados];
 
-  // Atualiza o contador na tela
+  // Atualiza o número de pessoas na fila
   const countEl = document.getElementById('lawyer-count');
   if (countEl) countEl.textContent = listaFinal.length;
 
-  // 4. LIMPA A LISTA ANTES DE DESENHAR
+  // Limpa a tela para desenhar do zero
   list.innerHTML = '';
 
   if (listaFinal.length === 0) {
@@ -214,29 +214,29 @@ function renderLawyerList(snap) {
     return;
   }
 
-  // 5. DESENHA A LISTA
+  // 4. DESENHA OS CARDS
   listaFinal.forEach((doc, i) => {
     const d = doc.data();
     const isCalled = d.status === 'chamado';
     const nomeCliente = d.nome || 'Sem Nome';
     
-    // Tratamento de segurança para o nome (evita quebrar o botão)
+    // Evita erro se o nome tiver aspas (ex: D'água)
     const nomeTratado = nomeCliente.replace(/'/g, "\\'");
 
     const row = document.createElement('div');
     row.className = 'client-row';
     
-    // Destaque visual para quem está esperando (Borda verde e fundo claro)
+    // Destaque visual para quem o advogado ainda precisa chamar
     if (!isCalled) {
       row.style.borderLeft = '5px solid #28a745';
       row.style.backgroundColor = '#f8ffff';
     }
 
     row.innerHTML = `
-      <div class="pos-num" style="font-weight: bold; margin-right: 15px;">${i + 1}</div>
-      <div class="client-info" style="flex-grow: 1;">
-        <div class="client-name" style="font-size: 1.1rem;"><strong>${nomeCliente}</strong></div>
-        <div class="client-meta" style="color: #666;">${isCalled ? '✅ Já foi chamado' : '⏳ Aguardando...'}</div>
+      <div class="pos-num" style="font-weight:bold; width:30px">${i + 1}</div>
+      <div class="client-info" style="flex:1">
+        <div class="client-name"><strong>${nomeCliente}</strong></div>
+        <div class="client-meta">${isCalled ? '✅ Já foi chamado' : '⏳ Aguardando...'}</div>
       </div>
       <button class="btn btn-call" 
         onclick="callClient('${doc.id}', '${nomeTratado}')" 
