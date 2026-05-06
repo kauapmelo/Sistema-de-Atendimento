@@ -288,20 +288,21 @@ function closePopup() {
    ═══════════════════════════════════════════════════ */
 
 function startListeners() {
+  // Listener da Recepção (Lista Geral)
   unsubReception = db.collection('clientes')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
       renderReceptionList(snap);
       updateStats(snap);
-    });
+    }, err => console.error("Erro na Recepção:", err));
 
+  // Listener do Monitor (Apenas chamados) - Removido o orderBy para evitar erro de índice
   unsubMonitor = db.collection('clientes')
     .where('status', '==', 'chamado')
-    .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
       renderMonitorList(snap);
       checkForNewCalls(snap);
-    });
+    }, err => console.error("Erro no Monitor:", err));
 }
 
 function formatWaitTime(ts) {
