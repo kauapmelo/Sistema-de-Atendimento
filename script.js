@@ -159,36 +159,52 @@ function updateStats(snap) {
    ═══════════════════════════════════════════════════ */
 
 function selectLawyer(name, el) {
+  // 1. Interface visual: destaca o card selecionado
   document.querySelectorAll('.lawyer-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   currentLawyer = name;
 
+  // 2. Prepara a tela
   document.getElementById('lawyer-queue').style.display = 'block';
   document.getElementById('lawyer-queue-title').textContent = `Fila — ${name}`;
 
-  if (unsubLawyer) unsubLawyer();
+  // 3. LIMPEZA CRÍTICA: Cancela a escuta anterior antes de começar uma nova
+  // Isso evita que nomes de um advogado "vazem" para a tela de outro
+  if (unsubLawyer) {
+    unsubLawyer(); 
+  }
 
+  // 4. CONSULTA FILTRADA: Busca no Firebase APENAS onde o advogado é igual ao selecionado
   unsubLawyer = db.collection('clientes')
-    .where('advogado', '==', name)
+    .where('advogado', '==', name) // Filtro rigoroso pelo nome do advogado
     .orderBy('timestamp', 'asc')
-    .onSnapshot(snap => renderLawyerList(snap));
+    .onSnapshot(snap => {
+      renderLawyerList(snap);
+    }, err => {
+      console.error("Erro ao carregar fila específica:", err);
+    });
 }
 
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
   const docs = snap.docs;
+  
+  // Atualiza o contador apenas com os clientes desse advogado
   document.getElementById('lawyer-count').textContent = docs.length;
 
   if (docs.length === 0) {
-    list.innerHTML = `<div class="empty">Fila vazia.</div>`;
+    list.innerHTML = `<div class="empty">Nenhum cliente na sua fila.</div>`;
     return;
   }
 
   list.innerHTML = '';
   docs.forEach((doc, i) => {
     const d = doc.data();
-    const called = d.status === 'chamado';
     
+    // Verificação extra de segurança no código (Double Check)
+    if (d.advogado !== currentLawyer) return;
+
+    const called = d.status === 'chamado';
     const row = document.createElement('div');
     row.className = 'client-row';
     row.innerHTML = `
@@ -296,9 +312,9 @@ function showPopup(nome, advogado, docId) {
   clearInterval(popupTimer);
   popupTimer = setInterval(() => {
     let elapsed = Date.now() - start;
-    let pct = Math.max(0, 100 - (elapsed / 10000) * 100);
+    let pct = Math.max(0, 100 - (elapsed / 15000) * 100);
     fill.style.width = pct + '%';
-    if (elapsed >= 10000) closePopup();
+    if (elapsed >= 15000) closePopup();
   }, 100);
 
   // Marca como notificado no banco para não repetir
