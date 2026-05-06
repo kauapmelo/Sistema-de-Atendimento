@@ -180,30 +180,33 @@ function selectLawyer(name, el) {
     });
 }
 
+/* ─────────────────────────────────────────
+    VERSÃO CORRIGIDA: TELA DO ADVOGADO
+───────────────────────────────────────── */
 function renderLawyerList(snap) {
   const list = document.getElementById('lawyer-list');
-  if (!list) return; // Segurança caso o elemento sumas da tela
+  if (!list) return; 
 
-  // 1. Pega os documentos com segurança
   const docs = snap.docs || [];
 
-  // 2. Filtra apenas os clientes do advogado atual (com check de segurança no data)
+  // 1. Filtra apenas os clientes do advogado atual
   const meusClientes = docs.filter(doc => {
     const data = doc.data();
     return data && data.advogado === currentLawyer;
   });
 
-  // 3. SEPARA: Usamos !== 'chamado' para garantir que qualquer outro status suba
+  // 2. SEPARA: Aguardando (topo) e Chamados (fim)
   const listaAguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
   const listaChamados = meusClientes.filter(doc => doc.data().status === 'chamado');
 
-  // 4. JUNTA: Aguardando sempre no topo
+  // 3. JUNTA: O "Chamar" fica sempre nas primeiras opções
   const listaFinal = [...listaAguardando, ...listaChamados];
 
-  // Atualiza contador
+  // Atualiza o contador na tela
   const countEl = document.getElementById('lawyer-count');
   if (countEl) countEl.textContent = listaFinal.length;
 
+  // 4. LIMPA A LISTA ANTES DE DESENHAR
   list.innerHTML = '';
 
   if (listaFinal.length === 0) {
@@ -211,33 +214,32 @@ function renderLawyerList(snap) {
     return;
   }
 
+  // 5. DESENHA A LISTA
   listaFinal.forEach((doc, i) => {
     const d = doc.data();
     const isCalled = d.status === 'chamado';
-    
-    // Proteção para o nome: se estiver vazio, coloca "Sem Nome"
     const nomeCliente = d.nome || 'Sem Nome';
     
-    // Proteção para o clique: escapa aspas simples para não quebrar o onclick
-    const nomeParaBotao = nomeCliente.replace(/'/g, "\\'");
+    // Tratamento de segurança para o nome (evita quebrar o botão)
+    const nomeTratado = nomeCliente.replace(/'/g, "\\'");
 
     const row = document.createElement('div');
     row.className = 'client-row';
     
-    // Destaque visual: Fundo levemente azul para quem ainda não foi chamado
+    // Destaque visual para quem está esperando (Borda verde e fundo claro)
     if (!isCalled) {
       row.style.borderLeft = '5px solid #28a745';
       row.style.backgroundColor = '#f8ffff';
     }
 
     row.innerHTML = `
-      <div class="pos-num">${i + 1}</div>
-      <div class="client-info">
-        <div class="client-name"><strong>${nomeCliente}</strong></div>
-        <div class="client-meta">${isCalled ? '✅ Já chamado' : '⏳ Aguardando...'}</div>
+      <div class="pos-num" style="font-weight: bold; margin-right: 15px;">${i + 1}</div>
+      <div class="client-info" style="flex-grow: 1;">
+        <div class="client-name" style="font-size: 1.1rem;"><strong>${nomeCliente}</strong></div>
+        <div class="client-meta" style="color: #666;">${isCalled ? '✅ Já foi chamado' : '⏳ Aguardando...'}</div>
       </div>
       <button class="btn btn-call" 
-        onclick="callClient('${doc.id}', '${nomeParaBotao}')" 
+        onclick="callClient('${doc.id}', '${nomeTratado}')" 
         ${isCalled ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
         ${isCalled ? 'Chamado' : '📢 Chamar'}
       </button>`;
