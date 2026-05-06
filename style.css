@@ -70,52 +70,68 @@ body::before {
    HEADER
 ───────────────────────────────────────── */
 
+/* ─────────────────────────────────────────
+   HEADER - VERSÃO CORRIGIDA
+───────────────────────────────────────── */
+
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
-  height: 120px;
-  /* Aumentamos um pouco para acomodar a logo completa */
+  padding: 0 40px;
+  height: 100px; /* Altura fixa controlada */
   background-color: #4a1414;
   border-bottom: 2px solid #c9a55c;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .logo-group {
   display: flex;
   align-items: center;
-  gap: 25px;
-  /* Espaço entre a logo completa e o título */
+  gap: 20px;
+  height: 100%;
 }
 
 .brand-crest {
-  height: 100px;
-  /* Altura maior para a frase da imagem aparecer bem */
+  height: 80px; /* A logo vai ocupar quase todo o header */
   width: auto;
   object-fit: contain;
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
-/* 1. O estilo principal */
 .brand-title {
   font-family: 'Playfair Display', serif;
-  font-size: 18px !important; /* Fixamos em pixels para não ter erro */
-  font-weight: 800;
+  font-size: 22px !important; /* Tamanho visível e elegante */
+  font-weight: 700;
   color: #f5ede0;
   text-transform: uppercase;
   margin: 0;
   letter-spacing: 1px;
+  white-space: nowrap; /* Impede o texto de quebrar linha */
 }
 
-/* 2. Ajuste o Media Query para não aumentar o texto de volta */
-@media (max-width: 1024px) {
-  .brand-title {
-    font-size: 14px !important; /* Menor ainda em tablets/celulares */
-  }
-  .brand-crest {
-    height: 60px;
-  }
+/* Ajuste para Celulares/Telas Pequenas */
+@media (max-width: 768px) {
   header {
-    height: 80px;
+    height: auto;
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .brand-title {
+    font-size: 16px !important;
+  }
+  
+  .brand-crest {
+    height: 50px;
+  }
+
+  nav {
+    width: 100%;
+    justify-content: center;
   }
 }
 
