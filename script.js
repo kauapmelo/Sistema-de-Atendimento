@@ -372,4 +372,4 @@ document.getElementById('inp-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') addClient();
 });
 
-window.onload = initFirebase;
+initFirebase();
