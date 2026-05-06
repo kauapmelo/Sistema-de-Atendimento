@@ -279,6 +279,15 @@ function processPopupQueue() {
 }
 
 function showPopup(nome, advogado, docId) {
+  // VERIFICAÇÃO DE SEGURANÇA: 
+  // Se a tela do Advogado estiver ativa, cancelamos a exibição do popup aqui.
+  const lawyerView = document.getElementById('view-lawyer');
+  if (lawyerView && lawyerView.classList.contains('active')) {
+    console.log("Popup bloqueado: Usuário está na tela do advogado.");
+    return; 
+  }
+
+  // Se passou pela trava, exibe o popup normalmente:
   document.getElementById('popup-name').textContent = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
   document.getElementById('popup-overlay').classList.add('show');
@@ -295,6 +304,7 @@ function showPopup(nome, advogado, docId) {
     if (elapsed >= 5000) closePopup();
   }, 100);
 
+  // Marca como notificado no banco para não repetir
   db.collection('clientes').doc(docId).update({ notificado: true });
   document.getElementById('popup-ok').onclick = closePopup;
 }
