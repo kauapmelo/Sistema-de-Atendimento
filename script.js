@@ -296,9 +296,9 @@ function showPopup(nome, advogado, docId) {
   clearInterval(popupTimer);
   popupTimer = setInterval(() => {
     let elapsed = Date.now() - start;
-    let pct = Math.max(0, 100 - (elapsed / 5000) * 100);
+    let pct = Math.max(0, 100 - (elapsed / 10000) * 100);
     fill.style.width = pct + '%';
-    if (elapsed >= 5000) closePopup();
+    if (elapsed >= 10000) closePopup();
   }, 100);
 
   // Marca como notificado no banco para não repetir
