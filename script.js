@@ -64,8 +64,8 @@ function showView(id) {
 
   const btns = document.querySelectorAll('nav button');
   if (id === 'reception' && btns[0]) btns[0].classList.add('active');
-  if (id === 'lawyer'    && btns[1]) btns[1].classList.add('active');
-  if (id === 'monitor'   && btns[2]) btns[2].classList.add('active');
+  if (id === 'lawyer' && btns[1]) btns[1].classList.add('active');
+  if (id === 'monitor' && btns[2]) btns[2].classList.add('active');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -197,11 +197,11 @@ function renderReceptionList(snap) {
 function updateStats(snap) {
   const docs = snap.docs;
   const waiting = docs.filter(d => d.data().status === 'aguardando').length;
-  const called  = docs.filter(d => d.data().status === 'chamado').length;
+  const called = docs.filter(d => d.data().status === 'chamado').length;
 
-  document.getElementById('stat-total').textContent   = docs.length;
+  document.getElementById('stat-total').textContent = docs.length;
   document.getElementById('stat-waiting').textContent = waiting;
-  document.getElementById('stat-called').textContent  = called;
+  document.getElementById('stat-called').textContent = called;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -231,9 +231,9 @@ function renderLawyerList(snap) {
   const docs = snap.docs || [];
 
   const meusClientes = docs.filter(doc => doc.data().advogado === currentLawyer);
-  const aguardando   = meusClientes.filter(doc => doc.data().status !== 'chamado');
-  const chamados     = meusClientes.filter(doc => doc.data().status === 'chamado');
-  const listaFinal   = [...aguardando, ...chamados];
+  const aguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
+  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
+  const listaFinal = [...aguardando, ...chamados];
 
   document.getElementById('lawyer-count').textContent = listaFinal.length;
 
@@ -347,7 +347,7 @@ function showPopup(nome, advogado, docId) {
     return;
   }
 
-  document.getElementById('popup-name').textContent   = nome;
+  document.getElementById('popup-name').textContent = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
   document.getElementById('popup-overlay').classList.add('show');
 
