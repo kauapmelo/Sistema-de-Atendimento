@@ -389,7 +389,7 @@ function speakCall(nome, advogado, onDone) {
     const sala = salaDoAdvogado[advogado] || advogado;
     const texto = `${nome}, dirija-se à sala de ${sala}.`;
     
-    const MAX_REP = 2; // Agora configurado para 2 repetições
+    const MAX_REP = 1; // Para configurar as repetições
     let repeticoes = 0;
 
     function falar() {
