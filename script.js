@@ -449,46 +449,60 @@ function playNotificationSound() {
 ───────────────────────────────────────── */
 
 function showPopup(nome, advogado, docId) {
-  const lawyerView = document.getElementById('view-lawyer');
-  if (lawyerView && lawyerView.classList.contains('active')) {
-    console.log("Popup bloqueado: Usuário está na tela do advogado.");
-    return;
-  }
+  // Se estiver na tela do advogado, ignora o popup
+  if (window.telaAtivaAtual === 'lawyer') return;
 
+  console.log("Iniciando popup para:", nome);
+  
+  // 1. Toca o sinal sonoro imediatamente
   playNotificationSound();
 
-  // Fala o nome e o advogado
-  speakCall(nome, advogado);
-
-  document.getElementById('popup-name').textContent   = nome;
+  // 2. Preenche os dados
+  document.getElementById('popup-name').textContent = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
 
   const isMonitor = window.telaAtivaAtual === 'monitor';
-
-  // Elementos condicionais
   const timerBar = document.getElementById('popup-timer-bar');
-  const okBtn    = document.getElementById('popup-ok');
+  const okBtn = document.getElementById('popup-ok');
+  const overlay = document.getElementById('popup-overlay');
 
+  // 3. Ajusta visibilidade conforme a tela
   if (isMonitor) {
-    // Tela Monitor: esconde botão e timer
     timerBar.style.display = 'none';
-    okBtn.style.display    = 'none';
+    okBtn.style.display = 'none';
   } else {
-    // Tela Recepção: mostra botão e timer normalmente
     timerBar.style.display = 'block';
-    okBtn.style.display    = 'inline-block';
+    okBtn.style.display = 'inline-block';
   }
 
-  document.getElementById('popup-overlay').classList.add('show');
+  overlay.classList.add('show');
 
-  const fill = document.getElementById('popup-timer-fill');
-  fill.style.width = '100%';
+  // 4. VOZ COM TRAVA DE SEGURANÇA
+  // Se a voz falhar ou demorar demais, o popup fecha em 12 segundos de qualquer jeito
+  let segurancaMonitor = null;
+  
+  if (isMonitor) {
+    segurancaMonitor = setTimeout(() => {
+      console.log("Segurança: Fechando monitor por tempo limite.");
+      closePopup();
+    }, 12000); // 12 segundos de backup
+  }
 
-  clearInterval(popupTimer);
+  // Chama a voz. O closePopup só será chamado automaticamente no Monitor após a fala.
+  speakCall(nome, advogado, () => {
+    if (isMonitor) {
+      clearTimeout(segurancaMonitor);
+      closePopup();
+    }
+  });
 
+  // 5. TIMER PARA A RECEPÇÃO
   if (!isMonitor) {
-    // Timer só roda na Recepção
+    const fill = document.getElementById('popup-timer-fill');
+    fill.style.width = '100%';
     let start = Date.now();
+    
+    clearInterval(popupTimer);
     popupTimer = setInterval(() => {
       let elapsed = Date.now() - start;
       let pct = Math.max(0, 100 - (elapsed / 15000) * 100);
@@ -496,17 +510,29 @@ function showPopup(nome, advogado, docId) {
       if (elapsed >= 15000) closePopup();
     }, 100);
 
-    document.getElementById('popup-ok').onclick = closePopup;
+    okBtn.onclick = closePopup;
   }
 
-  db.collection('clientes').doc(docId).update({ notificado: true });
+  // 6. Atualiza o Firebase para dizer que já foi exibido
+  db.collection('clientes').doc(docId).update({ notificado: true }).catch(e => console.error(e));
 }
 
 function closePopup() {
+  console.log("Limpando e fechando popup...");
   clearInterval(popupTimer);
-  window.speechSynthesis && window.speechSynthesis.cancel();
-  document.getElementById('popup-overlay').classList.remove('show');
-  setTimeout(processPopupQueue, 400);
+  
+  // Para a voz se ainda estiver falando
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+
+  const overlay = document.getElementById('popup-overlay');
+  if (overlay) {
+    overlay.classList.remove('show');
+  }
+
+  // Aguarda um pouco antes de processar o próximo da fila para evitar bugs visuais
+  setTimeout(processPopupQueue, 600);
 }
 
 /* ═══════════════════════════════════════════════════
