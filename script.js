@@ -358,44 +358,30 @@ function processPopupQueue() {
 
 function escolherVozFeminina() {
   const vozes = window.speechSynthesis.getVoices();
-
-  // Nomes comuns de vozes femininas em pt-BR
-  const nomesFemin = ['francisca', 'luciana', 'joana', 'beatriz', 'carolina',
-                      'helena', 'vitoria', 'female', 'woman'];
-
-  // 1ª tentativa: voz pt-BR com nome feminino
-  let voz = vozes.find(v =>
-    v.lang === 'pt-BR' &&
-    nomesFemin.some(n => v.name.toLowerCase().includes(n))
-  );
-
-  // 2ª tentativa: qualquer voz pt-BR (Google costuma ser feminina por padrão)
-  if (!voz) voz = vozes.find(v => v.lang === 'pt-BR');
-
-  // 3ª tentativa: qualquer voz portuguesa
-  if (!voz) voz = vozes.find(v => v.lang.startsWith('pt'));
-
-  return voz || null;
+  // Prioridade para vozes do Google e Microsoft que soam melhor em pt-BR
+  return vozes.find(v => v.lang === 'pt-BR' && (
+    v.name.includes('Francisca') || 
+    v.name.includes('Maria') || 
+    v.name.includes('Google') || 
+    v.name.includes('Luciana')
+  )) || vozes.find(v => v.lang === 'pt-BR');
 }
 
 function speakCall(nome, advogado, onDone) {
   try {
     if (!window.speechSynthesis) { if(onDone) onDone(); return; }
-
     window.speechSynthesis.cancel();
 
-    const sala  = salaDoAdvogado[advogado] || advogado;
+    const sala = salaDoAdvogado[advogado] || advogado;
     const texto = `${nome}, dirija-se à sala de ${sala}.`;
-
     const MAX_REP = 3;
     let repeticoes = 0;
 
     function falar() {
       const utterance = new SpeechSynthesisUtterance(texto);
-      utterance.lang   = 'pt-BR';
-      utterance.rate   = 0.90;
-      utterance.pitch  = 1.1;
-      utterance.volume = 1.0;
+      utterance.lang = 'pt-BR';
+      utterance.rate = 0.95; // Velocidade natural
+      utterance.pitch = 1.1; // Tom levemente mais agudo/feminino
 
       const voz = escolherVozFeminina();
       if (voz) utterance.voice = voz;
@@ -403,15 +389,17 @@ function speakCall(nome, advogado, onDone) {
       utterance.onend = () => {
         repeticoes++;
         if (repeticoes < MAX_REP) {
-          setTimeout(falar, 800);
+          setTimeout(falar, 1000); // Pausa de 1s entre repetições
         } else {
+          // SÓ CHAMA O ONDONE (QUE FECHA O POPUP) QUANDO TERMINAR TUDO
           if (onDone) onDone();
         }
       };
       window.speechSynthesis.speak(utterance);
     }
-
-    falar();
+    
+    // Pequeno atraso para começar a falar após o segundo sinal sonoro
+    setTimeout(falar, 1800); 
   } catch (err) {
     console.error("Erro na síntese de voz:", err);
     if (onDone) onDone();
@@ -422,7 +410,7 @@ function playNotificationSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const beep = (freq, start, duration, volume = 0.4) => {
-      const osc  = ctx.createOscillator();
+      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -434,9 +422,16 @@ function playNotificationSound() {
       osc.start(ctx.currentTime + start);
       osc.stop(ctx.currentTime + start + duration + 0.05);
     };
-    beep(523, 0.0,  0.18);
+
+    // Primeira execução (0s)
+    beep(523, 0.0, 0.18);
     beep(659, 0.22, 0.18);
     beep(784, 0.44, 0.35);
+
+    // Segunda execução (após 1 segundo)
+    beep(523, 1.0, 0.18);
+    beep(659, 1.22, 0.18);
+    beep(784, 1.44, 0.35);
   } catch (e) {
     console.warn('Som nao disponivel:', e);
   }
@@ -449,71 +444,45 @@ function playNotificationSound() {
 ───────────────────────────────────────── */
 
 function showPopup(nome, advogado, docId) {
-  // Se estiver na tela do advogado, ignora o popup
   if (window.telaAtivaAtual === 'lawyer') return;
 
-  console.log("Iniciando popup para:", nome);
-  
-  // 1. Toca o sinal sonoro imediatamente
   playNotificationSound();
 
-  // 2. Preenche os dados
   document.getElementById('popup-name').textContent = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
 
   const isMonitor = window.telaAtivaAtual === 'monitor';
-  const timerBar = document.getElementById('popup-timer-bar');
-  const okBtn = document.getElementById('popup-ok');
   const overlay = document.getElementById('popup-overlay');
-
-  // 3. Ajusta visibilidade conforme a tela
-  if (isMonitor) {
-    timerBar.style.display = 'none';
-    okBtn.style.display = 'none';
-  } else {
-    timerBar.style.display = 'block';
-    okBtn.style.display = 'inline-block';
-  }
+  
+  // Esconde elementos desnecessários no monitor
+  document.getElementById('popup-timer-bar').style.display = isMonitor ? 'none' : 'block';
+  document.getElementById('popup-ok').style.display = isMonitor ? 'none' : 'inline-block';
 
   overlay.classList.add('show');
 
-  // 4. VOZ COM TRAVA DE SEGURANÇA
-  // Se a voz falhar ou demorar demais, o popup fecha em 12 segundos de qualquer jeito
-  let segurancaMonitor = null;
-  
+  // LÓGICA DE FECHAMENTO
   if (isMonitor) {
-    segurancaMonitor = setTimeout(() => {
-      console.log("Segurança: Fechando monitor por tempo limite.");
+    // No monitor, o popup SÓ fecha quando a função speakCall avisar que terminou (onDone)
+    speakCall(nome, advogado, () => {
+      console.log("Voz concluída, fechando popup do monitor.");
       closePopup();
-    }, 12000); // 12 segundos de backup
-  }
-
-  // Chama a voz. O closePopup só será chamado automaticamente no Monitor após a fala.
-  speakCall(nome, advogado, () => {
-    if (isMonitor) {
-      clearTimeout(segurancaMonitor);
-      closePopup();
-    }
-  });
-
-  // 5. TIMER PARA A RECEPÇÃO
-  if (!isMonitor) {
-    const fill = document.getElementById('popup-timer-fill');
-    fill.style.width = '100%';
-    let start = Date.now();
+    });
+  } else {
+    // Na recepção, mantém o timer visual e botão
+    speakCall(nome, advogado); // Fala mas não trava o fechamento
     
+    let start = Date.now();
     clearInterval(popupTimer);
     popupTimer = setInterval(() => {
       let elapsed = Date.now() - start;
-      let pct = Math.max(0, 100 - (elapsed / 15000) * 100);
-      fill.style.width = pct + '%';
-      if (elapsed >= 15000) closePopup();
+      let pct = Math.max(0, 100 - (elapsed / 20000) * 100); // 20s para dar tempo da voz
+      document.getElementById('popup-timer-fill').style.width = pct + '%';
+      if (elapsed >= 20000) closePopup();
     }, 100);
 
-    okBtn.onclick = closePopup;
+    document.getElementById('popup-ok').onclick = closePopup;
   }
 
-  // 6. Atualiza o Firebase para dizer que já foi exibido
   db.collection('clientes').doc(docId).update({ notificado: true }).catch(e => console.error(e));
 }
 
