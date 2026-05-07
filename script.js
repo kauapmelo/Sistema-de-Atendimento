@@ -314,7 +314,7 @@ function renderMonitorList(snap) {
     row.innerHTML = `
       <div class="client-info">
         <div class="client-name">📢 ${escHtml(d.nome)}</div>
-        <div class="client-meta">Ir para: <strong>${escHtml(d.advogado)}</strong> · 🕐 ${timeText}</div>
+        <div class="client-meta">Ir para sala de: <strong>${escHtml(d.advogado)}</strong> · 🕐 ${timeText}</div>
       </div>`;
     list.appendChild(row);
   });
