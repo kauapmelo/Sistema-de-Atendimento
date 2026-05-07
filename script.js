@@ -188,7 +188,8 @@ function renderReceptionList(snap) {
       <span class="badge ${called ? 'badge-called' : 'badge-waiting'}">
         ${called ? 'Chamado' : 'Aguardando'}
       </span>
-      <button class="btn-delete" title="Remover cliente" onclick="deleteClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')">🗑</button>`;
+      <button class="btn-delete" title="Remover cliente">🗑</button>`;
+    row.querySelector('.btn-delete').addEventListener('click', () => deleteClient(doc.id, d.nome));
     list.appendChild(row);
   });
 }
@@ -256,12 +257,14 @@ function renderLawyerList(snap) {
         <div class="client-name">${escHtml(d.nome)}</div>
         <div class="client-meta">${called ? '📢 Chamado' : '⏱ Aguardando'} · 🕐 ${timeText}</div>
       </div>
-      <button class="btn btn-call"
-        onclick="callClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')"
-        ${called ? 'disabled' : ''}>
+      <button class="btn btn-call" ${called ? 'disabled' : ''}>
         ${called ? 'Chamado' : '📢 Chamar'}
       </button>
-      <button class="btn-delete" title="Remover cliente" onclick="deleteClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')">🗑</button>`;
+      <button class="btn-delete" title="Remover cliente">🗑</button>`;
+    if (!called) {
+      row.querySelector('.btn-call').addEventListener('click', () => callClient(doc.id, d.nome));
+    }
+    row.querySelector('.btn-delete').addEventListener('click', () => deleteClient(doc.id, d.nome));
     list.appendChild(row);
   });
 }
