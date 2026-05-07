@@ -29,6 +29,16 @@ let unsubReception = null;
 let unsubLawyer = null;
 let unsubMonitor = null;
 
+/* ─────────────────────────────────────────
+   MAPEAMENTO DE SALAS POR ADVOGADO
+───────────────────────────────────────── */
+const salaDoAdvogado = {
+  'Dra. Anária Pereira':    'Dra. Anária Pereira',
+  'Dr. Gabriel Pereira':    'Dr. Gabriel Pereira',
+  'Dra. Priscilla Saraiva': 'Dra. Priscilla Saraiva',
+  'Dra. Bárbara Ferreira':  'Dra. Bárbara Ferreira'
+};
+
 /* ═══════════════════════════════════════════════════
    FIREBASE — INICIALIZAÇÃO AUTOMÁTICA
    ═══════════════════════════════════════════════════ */
@@ -340,6 +350,74 @@ function processPopupQueue() {
   showPopup(next.nome, next.advogado, next.id);
 }
 
+/* ─────────────────────────────────────────
+   VOZ — SÍNTESE DE FALA (Web Speech API)
+   Frase: "[nome], dirija-se à sala de [advogado]"
+   onDone: callback chamado após a última repetição
+───────────────────────────────────────── */
+
+function escolherVozFeminina() {
+  const vozes = window.speechSynthesis.getVoices();
+
+  // Nomes comuns de vozes femininas em pt-BR
+  const nomesFemin = ['francisca', 'luciana', 'joana', 'beatriz', 'carolina',
+                      'helena', 'vitoria', 'female', 'woman'];
+
+  // 1ª tentativa: voz pt-BR com nome feminino
+  let voz = vozes.find(v =>
+    v.lang === 'pt-BR' &&
+    nomesFemin.some(n => v.name.toLowerCase().includes(n))
+  );
+
+  // 2ª tentativa: qualquer voz pt-BR (Google costuma ser feminina por padrão)
+  if (!voz) voz = vozes.find(v => v.lang === 'pt-BR');
+
+  // 3ª tentativa: qualquer voz portuguesa
+  if (!voz) voz = vozes.find(v => v.lang.startsWith('pt'));
+
+  return voz || null;
+}
+
+function speakCall(nome, advogado, onDone) {
+  try {
+    if (!window.speechSynthesis) { if(onDone) onDone(); return; }
+
+    window.speechSynthesis.cancel();
+
+    const sala  = salaDoAdvogado[advogado] || advogado;
+    const texto = `${nome}, dirija-se à sala de ${sala}.`;
+
+    const MAX_REP = 3;
+    let repeticoes = 0;
+
+    function falar() {
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang   = 'pt-BR';
+      utterance.rate   = 0.90;
+      utterance.pitch  = 1.1;
+      utterance.volume = 1.0;
+
+      const voz = escolherVozFeminina();
+      if (voz) utterance.voice = voz;
+
+      utterance.onend = () => {
+        repeticoes++;
+        if (repeticoes < MAX_REP) {
+          setTimeout(falar, 800);
+        } else {
+          if (onDone) onDone();
+        }
+      };
+      window.speechSynthesis.speak(utterance);
+    }
+
+    falar();
+  } catch (err) {
+    console.error("Erro na síntese de voz:", err);
+    if (onDone) onDone();
+  }
+}
+
 function playNotificationSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -364,6 +442,12 @@ function playNotificationSound() {
   }
 }
 
+/* ─────────────────────────────────────────
+   POPUP — comportamento diferente por tela:
+   • Recepção → popup completo com "OK, Entendido" + timer
+   • Monitor  → popup só com nome/advogado, sem botão nem timer
+───────────────────────────────────────── */
+
 function showPopup(nome, advogado, docId) {
   const lawyerView = document.getElementById('view-lawyer');
   if (lawyerView && lawyerView.classList.contains('active')) {
@@ -373,28 +457,54 @@ function showPopup(nome, advogado, docId) {
 
   playNotificationSound();
 
+  // Fala o nome e o advogado
+  speakCall(nome, advogado);
+
   document.getElementById('popup-name').textContent   = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
+
+  const isMonitor = window.telaAtivaAtual === 'monitor';
+
+  // Elementos condicionais
+  const timerBar = document.getElementById('popup-timer-bar');
+  const okBtn    = document.getElementById('popup-ok');
+
+  if (isMonitor) {
+    // Tela Monitor: esconde botão e timer
+    timerBar.style.display = 'none';
+    okBtn.style.display    = 'none';
+  } else {
+    // Tela Recepção: mostra botão e timer normalmente
+    timerBar.style.display = 'block';
+    okBtn.style.display    = 'inline-block';
+  }
+
   document.getElementById('popup-overlay').classList.add('show');
 
   const fill = document.getElementById('popup-timer-fill');
   fill.style.width = '100%';
 
-  let start = Date.now();
   clearInterval(popupTimer);
-  popupTimer = setInterval(() => {
-    let elapsed = Date.now() - start;
-    let pct = Math.max(0, 100 - (elapsed / 15000) * 100);
-    fill.style.width = pct + '%';
-    if (elapsed >= 15000) closePopup();
-  }, 100);
+
+  if (!isMonitor) {
+    // Timer só roda na Recepção
+    let start = Date.now();
+    popupTimer = setInterval(() => {
+      let elapsed = Date.now() - start;
+      let pct = Math.max(0, 100 - (elapsed / 15000) * 100);
+      fill.style.width = pct + '%';
+      if (elapsed >= 15000) closePopup();
+    }, 100);
+
+    document.getElementById('popup-ok').onclick = closePopup;
+  }
 
   db.collection('clientes').doc(docId).update({ notificado: true });
-  document.getElementById('popup-ok').onclick = closePopup;
 }
 
 function closePopup() {
   clearInterval(popupTimer);
+  window.speechSynthesis && window.speechSynthesis.cancel();
   document.getElementById('popup-overlay').classList.remove('show');
   setTimeout(processPopupQueue, 400);
 }
@@ -446,6 +556,17 @@ function showToast(msg, error = false) {
   el.style.background = error ? '#c0392b' : '#6b1a1a';
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ─────────────────────────────────────────
+   PRÉ-CARREGA VOZES (alguns navegadores
+   só listam vozes após este evento)
+───────────────────────────────────────── */
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
 }
 
 /* ─────────────────────────────────────────
