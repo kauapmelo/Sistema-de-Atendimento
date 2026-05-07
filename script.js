@@ -64,8 +64,8 @@ function showView(id) {
 
   const btns = document.querySelectorAll('nav button');
   if (id === 'reception' && btns[0]) btns[0].classList.add('active');
-  if (id === 'lawyer' && btns[1]) btns[1].classList.add('active');
-  if (id === 'monitor' && btns[2]) btns[2].classList.add('active');
+  if (id === 'lawyer'    && btns[1]) btns[1].classList.add('active');
+  if (id === 'monitor'   && btns[2]) btns[2].classList.add('active');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -197,11 +197,11 @@ function renderReceptionList(snap) {
 function updateStats(snap) {
   const docs = snap.docs;
   const waiting = docs.filter(d => d.data().status === 'aguardando').length;
-  const called = docs.filter(d => d.data().status === 'chamado').length;
+  const called  = docs.filter(d => d.data().status === 'chamado').length;
 
-  document.getElementById('stat-total').textContent = docs.length;
+  document.getElementById('stat-total').textContent   = docs.length;
   document.getElementById('stat-waiting').textContent = waiting;
-  document.getElementById('stat-called').textContent = called;
+  document.getElementById('stat-called').textContent  = called;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -231,9 +231,9 @@ function renderLawyerList(snap) {
   const docs = snap.docs || [];
 
   const meusClientes = docs.filter(doc => doc.data().advogado === currentLawyer);
-  const aguardando = meusClientes.filter(doc => doc.data().status !== 'chamado');
-  const chamados = meusClientes.filter(doc => doc.data().status === 'chamado');
-  const listaFinal = [...aguardando, ...chamados];
+  const aguardando   = meusClientes.filter(doc => doc.data().status !== 'chamado');
+  const chamados     = meusClientes.filter(doc => doc.data().status === 'chamado');
+  const listaFinal   = [...aguardando, ...chamados];
 
   document.getElementById('lawyer-count').textContent = listaFinal.length;
 
@@ -340,6 +340,30 @@ function processPopupQueue() {
   showPopup(next.nome, next.advogado, next.id);
 }
 
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const beep = (freq, start, duration, volume = 0.4) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + start + 0.01);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + duration);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + duration + 0.05);
+    };
+    beep(523, 0.0,  0.18);
+    beep(659, 0.22, 0.18);
+    beep(784, 0.44, 0.35);
+  } catch (e) {
+    console.warn('Som nao disponivel:', e);
+  }
+}
+
 function showPopup(nome, advogado, docId) {
   const lawyerView = document.getElementById('view-lawyer');
   if (lawyerView && lawyerView.classList.contains('active')) {
@@ -347,7 +371,9 @@ function showPopup(nome, advogado, docId) {
     return;
   }
 
-  document.getElementById('popup-name').textContent = nome;
+  playNotificationSound();
+
+  document.getElementById('popup-name').textContent   = nome;
   document.getElementById('popup-lawyer').textContent = advogado;
   document.getElementById('popup-overlay').classList.add('show');
 
@@ -400,7 +426,7 @@ function formatDateTime(ts) {
   if (!ts) return '--';
   try {
     const date = ts.toDate();
-    const dia = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const dia  = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
     const hora = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     return `${dia} ${hora}`;
   } catch {
