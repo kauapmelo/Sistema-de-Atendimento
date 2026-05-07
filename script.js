@@ -400,20 +400,9 @@ function formatDateTime(ts) {
   if (!ts) return '--';
   try {
     const date = ts.toDate();
-    const hoje = new Date();
-    const isHoje =
-      date.getDate() === hoje.getDate() &&
-      date.getMonth() === hoje.getMonth() &&
-      date.getFullYear() === hoje.getFullYear();
-
+    const dia = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
     const hora = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-    if (isHoje) {
-      return hora;
-    } else {
-      const dia = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      return `${dia} ${hora}`;
-    }
+    return `${dia} ${hora}`;
   } catch {
     return '--';
   }
