@@ -18,16 +18,16 @@
 <body>
 
   <header>
-  <div class="logo-group">
-    <img src="imgs/logo_escritorio.png" alt="Logo" class="brand-crest">
-    <h1 class="brand-title">Sistema de Atendimento A.P</h1>
-  </div>
-  <nav>
-    <button class="active" onclick="showView('reception')">Recepção</button>
-    <button onclick="showView('lawyer')">Advogado</button>
-    <button onclick="showView('monitor')">Monitor</button>
-  </nav>
-</header>
+    <div class="logo-group">
+      <img src="imgs/logo_escritorio.png" alt="Logo" class="brand-crest">
+      <h1 class="brand-title">Sistema de Atendimento A.P</h1>
+    </div>
+    <nav>
+      <button class="active" onclick="showView('reception')">Recepção</button>
+      <button onclick="showView('lawyer')">Advogado</button>
+      <button onclick="showView('monitor')">Monitor</button>
+    </nav>
+  </header>
 
   <main>
 
@@ -76,7 +76,10 @@
 
       <div class="section-header">
         <div class="section-title">Clientes</div>
-        <div class="count-badge" id="rec-count">0</div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div class="count-badge" id="rec-count">0</div>
+          <button class="btn-clear-all" onclick="clearAllClients()" title="Apagar todo o histórico">🗑 Apagar Tudo</button>
+        </div>
       </div>
       <div class="client-list" id="reception-list">
         <div class="empty">
@@ -87,64 +90,67 @@
     </div>
 
     <!-- TELA 2: ADVOGADO -->
-<div id="view-lawyer" class="view">
-  <div class="page-title">Painel do Advogado</div>
-  <p class="page-sub">Selecione seu perfil para visualizar a fila de atendimento.</p>
+    <div id="view-lawyer" class="view">
+      <div class="page-title">Painel do Advogado</div>
+      <p class="page-sub">Selecione seu perfil para visualizar a fila de atendimento.</p>
 
-  <div class="lawyer-selector">
-    <!-- Dra. Anária -->
-    <div class="lawyer-card" onclick="selectLawyer('Dra. Anária Pereira', this)">
-      <div class="lawyer-avatar">
-        <img src="imgs/anaria.png" alt="Dra. Anária" class="avatar-img">
+      <div class="lawyer-selector">
+        <!-- Dra. Anária -->
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Anária Pereira', this)">
+          <div class="lawyer-avatar">
+            <img src="imgs/anaria.png" alt="Dra. Anária" class="avatar-img">
+          </div>
+          <div>
+            <div class="lawyer-label">Dra. Anária Pereira</div>
+            <div class="lawyer-sub">Direito Previdenciário</div>
+          </div>
+        </div>
+
+        <!-- Dr. Gabriel -->
+        <div class="lawyer-card" onclick="selectLawyer('Dr. Gabriel Pereira', this)">
+          <div class="lawyer-avatar">
+            <img src="imgs/gabriel.png" alt="Dr. Gabriel" class="avatar-img">
+          </div>
+          <div>
+            <div class="lawyer-label">Dr. Gabriel Pereira</div>
+            <div class="lawyer-sub">Direito Previdenciário</div>
+          </div>
+        </div>
+
+        <!-- Dra. Priscilla -->
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Priscilla Saraiva', this)">
+          <div class="lawyer-avatar">
+            <img src="imgs/priscilla.png" alt="Dra. Priscilla" class="avatar-img">
+          </div>
+          <div>
+            <div class="lawyer-label">Dra. Priscilla Saraiva</div>
+            <div class="lawyer-sub">Direito Previdenciário & Trabalhista</div>
+          </div>
+        </div>
+
+        <!-- Dra. Bárbara -->
+        <div class="lawyer-card" onclick="selectLawyer('Dra. Bárbara Ferreira', this)">
+          <div class="lawyer-avatar">
+            <img src="imgs/barbara.png" alt="Dra. Bárbara" class="avatar-img">
+          </div>
+          <div>
+            <div class="lawyer-label">Dra. Bárbara Ferreira</div>
+            <div class="lawyer-sub">Direito Previdenciário & Imobiliária</div>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="lawyer-label">Dra. Anária Pereira</div>
-        <div class="lawyer-sub">Direito Previdenciário</div>
+
+      <div id="lawyer-queue" style="display:none">
+        <div class="section-header">
+          <div class="section-title" id="lawyer-queue-title">Fila de Atendimento</div>
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <div class="count-badge" id="lawyer-count">0</div>
+            <button class="btn-clear-all" onclick="clearLawyerClients()" title="Apagar fila deste advogado">🗑 Apagar Tudo</button>
+          </div>
+        </div>
+        <div class="client-list" id="lawyer-list"></div>
       </div>
     </div>
-
-    <!-- Dr. Gabriel -->
-    <div class="lawyer-card" onclick="selectLawyer('Dr. Gabriel Pereira', this)">
-      <div class="lawyer-avatar">
-        <img src="imgs/gabriel.png" alt="Dr. Gabriel" class="avatar-img">
-      </div>
-      <div>
-        <div class="lawyer-label">Dr. Gabriel Pereira</div>
-        <div class="lawyer-sub">Direito Previdenciário</div>
-      </div>
-    </div>
-
-    <!-- Dra. Priscilla -->
-    <div class="lawyer-card" onclick="selectLawyer('Dra. Priscilla Saraiva', this)">
-      <div class="lawyer-avatar">
-        <img src="imgs/priscilla.png" alt="Dra. Priscilla" class="avatar-img">
-      </div>
-      <div>
-        <div class="lawyer-label">Dra. Priscilla Saraiva</div>
-        <div class="lawyer-sub">Direito Previdenciário & Trabalhista</div>
-      </div>
-    </div>
-
-    <!-- Dra. Bárbara -->
-    <div class="lawyer-card" onclick="selectLawyer('Dra. Bárbara Ferreira', this)">
-      <div class="lawyer-avatar">
-        <img src="imgs/barbara.png" alt="Dra. Bárbara" class="avatar-img">
-      </div>
-      <div>
-        <div class="lawyer-label">Dra. Bárbara Ferreira</div>
-        <div class="lawyer-sub">Direito Previdenciário & Imobiliária</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="lawyer-queue" style="display:none">
-    <div class="section-header">
-      <div class="section-title" id="lawyer-queue-title">Fila de Atendimento</div>
-      <div class="count-badge" id="lawyer-count">0</div>
-    </div>
-    <div class="client-list" id="lawyer-list"></div>
-  </div>
-</div>
 
     <!-- TELA 3: MONITOR -->
     <div id="view-monitor" class="view">

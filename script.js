@@ -7,7 +7,6 @@
    CONFIGURAÇÃO DO FIREBASE
 ───────────────────────────────────────── */
 
-// 2. Usar as variáveis de ambiente no objeto de configuração
 const firebaseConfig = {
   apiKey: "AIzaSyAD60g-LUTuhdIKTI6Khg9FciFT08UGZEA",
   authDomain: "sistema-de-atendimento-d2430.firebaseapp.com",
@@ -99,6 +98,57 @@ async function addClient() {
   }
 }
 
+/* ─────────────────────────────────────────
+   APAGAR CLIENTE INDIVIDUAL
+───────────────────────────────────────── */
+
+async function deleteClient(docId, nome) {
+  if (!confirm(`Remover "${nome}" da lista?`)) return;
+  try {
+    await db.collection('clientes').doc(docId).delete();
+    showToast(`${nome} removido.`);
+  } catch (err) {
+    showToast('Erro ao remover cliente.', true);
+  }
+}
+
+/* ─────────────────────────────────────────
+   APAGAR HISTÓRICO COMPLETO (RECEPÇÃO)
+───────────────────────────────────────── */
+
+async function clearAllClients() {
+  if (!confirm('Apagar TODOS os clientes do histórico? Esta ação não pode ser desfeita.')) return;
+  try {
+    const snap = await db.collection('clientes').get();
+    const batch = db.batch();
+    snap.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    showToast('Histórico apagado com sucesso.');
+  } catch (err) {
+    showToast('Erro ao apagar histórico.', true);
+  }
+}
+
+/* ─────────────────────────────────────────
+   APAGAR HISTÓRICO DO ADVOGADO SELECIONADO
+───────────────────────────────────────── */
+
+async function clearLawyerClients() {
+  if (!currentLawyer) return;
+  if (!confirm(`Apagar todos os clientes de ${currentLawyer}? Esta ação não pode ser desfeita.`)) return;
+  try {
+    const snap = await db.collection('clientes')
+      .where('advogado', '==', currentLawyer)
+      .get();
+    const batch = db.batch();
+    snap.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    showToast(`Fila de ${currentLawyer} apagada.`);
+  } catch (err) {
+    showToast('Erro ao apagar fila.', true);
+  }
+}
+
 /* ═══════════════════════════════════════════════════
    TELA 1 — RECEPÇÃO (ORDEM: AGUARDANDO PRIMEIRO)
    ═══════════════════════════════════════════════════ */
@@ -113,38 +163,32 @@ function renderReceptionList(snap) {
     return;
   }
 
-  // --- NOVA LÓGICA DE ORDENAÇÃO ---
-  // Criamos uma cópia do array e ordenamos:
-  // Se d1 é 'aguardando' e d2 é 'chamado', d1 vem primeiro.
   const sortedDocs = [...docs].sort((a, b) => {
     const statusA = a.data().status;
     const statusB = b.data().status;
-
     if (statusA === 'aguardando' && statusB === 'chamado') return -1;
     if (statusA === 'chamado' && statusB === 'aguardando') return 1;
-    
-    // Se o status for igual, mantém a ordem do timestamp original
-    return 0; 
+    return 0;
   });
 
   list.innerHTML = '';
-  
-  // Usamos o array ordenado (sortedDocs) para renderizar
+
   sortedDocs.forEach(doc => {
     const d = doc.data();
     const called = d.status === 'chamado';
-    const wait = formatWaitTime(d.timestamp);
+    const timeText = formatDateTime(d.timestamp);
 
     const row = document.createElement('div');
     row.className = 'client-row';
     row.innerHTML = `
       <div class="client-info">
-        <div class="client-name">${escHtml(d.nome)} ${called ? ' (Chamado)' : ''}</div>
-        <div class="client-meta">👤 ${escHtml(d.advogado)} · ⏱ ${wait.text}</div>
+        <div class="client-name">${escHtml(d.nome)}${called ? ' <span class="called-tag">(Chamado)</span>' : ''}</div>
+        <div class="client-meta">👤 ${escHtml(d.advogado)} · 🕐 ${timeText}</div>
       </div>
       <span class="badge ${called ? 'badge-called' : 'badge-waiting'}">
         ${called ? 'Chamado' : 'Aguardando'}
-      </span>`;
+      </span>
+      <button class="btn-delete" title="Remover cliente" onclick="deleteClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')">🗑</button>`;
     list.appendChild(row);
   });
 }
@@ -202,20 +246,22 @@ function renderLawyerList(snap) {
   listaFinal.forEach((doc, i) => {
     const d = doc.data();
     const called = d.status === 'chamado';
+    const timeText = formatDateTime(d.timestamp);
 
     const row = document.createElement('div');
     row.className = 'client-row';
     row.innerHTML = `
       <div class="pos-num">${i + 1}</div>
       <div class="client-info">
-        <div class="client-name">${d.nome}</div>
-        <div class="client-meta">${called ? '📢 Já chamado' : '⏱ Aguardando'}</div>
+        <div class="client-name">${escHtml(d.nome)}</div>
+        <div class="client-meta">${called ? '📢 Chamado' : '⏱ Aguardando'} · 🕐 ${timeText}</div>
       </div>
       <button class="btn btn-call"
         onclick="callClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')"
         ${called ? 'disabled' : ''}>
         ${called ? 'Chamado' : '📢 Chamar'}
-      </button>`;
+      </button>
+      <button class="btn-delete" title="Remover cliente" onclick="deleteClient('${doc.id}', '${d.nome.replace(/'/g, "\\'")}')">🗑</button>`;
     list.appendChild(row);
   });
 }
@@ -249,12 +295,13 @@ function renderMonitorList(snap) {
   list.innerHTML = '';
   sorted.forEach(doc => {
     const d = doc.data();
+    const timeText = formatDateTime(d.timestamp);
     const row = document.createElement('div');
     row.className = 'client-row';
     row.innerHTML = `
       <div class="client-info">
         <div class="client-name">📢 ${escHtml(d.nome)}</div>
-        <div class="client-meta">Ir para: <strong>${escHtml(d.advogado)}</strong></div>
+        <div class="client-meta">Ir para: <strong>${escHtml(d.advogado)}</strong> · 🕐 ${timeText}</div>
       </div>`;
     list.appendChild(row);
   });
@@ -343,12 +390,30 @@ function startListeners() {
     }, err => console.error("Erro no Monitor:", err));
 }
 
-function formatWaitTime(ts) {
-  if (!ts) return { text: '--', long: false };
-  const diff = Math.floor((Date.now() - ts.toMillis()) / 1000);
-  if (diff < 60) return { text: 'agora', long: false };
-  const min = Math.floor(diff / 60);
-  return { text: min + 'min', long: min > 30 };
+/* ─────────────────────────────────────────
+   FORMATA DATA E HORA DO TIMESTAMP
+───────────────────────────────────────── */
+function formatDateTime(ts) {
+  if (!ts) return '--';
+  try {
+    const date = ts.toDate();
+    const hoje = new Date();
+    const isHoje =
+      date.getDate() === hoje.getDate() &&
+      date.getMonth() === hoje.getMonth() &&
+      date.getFullYear() === hoje.getFullYear();
+
+    const hora = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    if (isHoje) {
+      return hora;
+    } else {
+      const dia = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      return `${dia} ${hora}`;
+    }
+  } catch {
+    return '--';
+  }
 }
 
 function escHtml(s) {
