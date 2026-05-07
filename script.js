@@ -359,21 +359,25 @@ function processPopupQueue() {
 function escolherVozFeminina() {
   const vozes = window.speechSynthesis.getVoices();
   
-  // Lista de nomes de vozes femininas conhecidas por serem boas
-  const nomesDesejados = ['Maria', 'Francisca', 'Google português', 'Luciana', 'Heloisa', 'Victoria'];
-  
-  // Tenta encontrar uma das vozes da lista acima em pt-BR
-  let voz = vozes.find(v => 
-    v.lang.includes('pt-BR') && 
-    nomesDesejados.some(nome => v.name.includes(nome))
-  );
+  // 1ª Opção: Francisca (A melhor do Edge/Windows)
+  let voz = vozes.find(v => v.name.includes('Francisca'));
 
-  // Se não achar, pega a primeira feminina que aparecer no sistema
+  // 2ª Opção: Voz Premium do Google (Melhor do Chrome)
   if (!voz) {
-    voz = vozes.find(v => v.lang.includes('pt-BR') && v.name.toLowerCase().includes('female'));
+    voz = vozes.find(v => v.name.includes('Google português do Brasil'));
   }
 
-  // Se ainda não achar nada, pega qualquer pt-BR (padrão do sistema)
+  // 3ª Opção: Luciana (Melhor do Mac/Siri)
+  if (!voz) {
+    voz = vozes.find(v => v.name.includes('Luciana'));
+  }
+
+  // 4ª Opção: Maria (Voz padrão de segurança)
+  if (!voz) {
+    voz = vozes.find(v => v.name.includes('Maria'));
+  }
+
+  // Se não achar nada específico, pega qualquer uma em PT-BR
   return voz || vozes.find(v => v.lang.includes('pt-BR'));
 }
 
@@ -391,7 +395,7 @@ function speakCall(nome, advogado, onDone) {
     function falar() {
       const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = 'pt-BR';
-      utterance.rate = 0.92; // Um pouco mais lenta para ser clara
+      utterance.rate = 0.85; // Um pouco mais lenta para ser clara
       utterance.pitch = 1.2; // Tom mais agudo para reforçar o timbre feminino
 
       const voz = escolherVozFeminina();
