@@ -358,13 +358,23 @@ function processPopupQueue() {
 
 function escolherVozFeminina() {
   const vozes = window.speechSynthesis.getVoices();
-  // Prioridade para vozes do Google e Microsoft que soam melhor em pt-BR
-  return vozes.find(v => v.lang === 'pt-BR' && (
-    v.name.includes('Francisca') || 
-    v.name.includes('Maria') || 
-    v.name.includes('Google') || 
-    v.name.includes('Luciana')
-  )) || vozes.find(v => v.lang === 'pt-BR');
+  
+  // Lista de nomes de vozes femininas conhecidas por serem boas
+  const nomesDesejados = ['Maria', 'Francisca', 'Google português', 'Luciana', 'Heloisa', 'Victoria'];
+  
+  // Tenta encontrar uma das vozes da lista acima em pt-BR
+  let voz = vozes.find(v => 
+    v.lang.includes('pt-BR') && 
+    nomesDesejados.some(nome => v.name.includes(nome))
+  );
+
+  // Se não achar, pega a primeira feminina que aparecer no sistema
+  if (!voz) {
+    voz = vozes.find(v => v.lang.includes('pt-BR') && v.name.toLowerCase().includes('female'));
+  }
+
+  // Se ainda não achar nada, pega qualquer pt-BR (padrão do sistema)
+  return voz || vozes.find(v => v.lang.includes('pt-BR'));
 }
 
 function speakCall(nome, advogado, onDone) {
@@ -374,14 +384,15 @@ function speakCall(nome, advogado, onDone) {
 
     const sala = salaDoAdvogado[advogado] || advogado;
     const texto = `${nome}, dirija-se à sala de ${sala}.`;
-    const MAX_REP = 3;
+    
+    const MAX_REP = 2; // Agora configurado para 2 repetições
     let repeticoes = 0;
 
     function falar() {
       const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = 'pt-BR';
-      utterance.rate = 0.95; // Velocidade natural
-      utterance.pitch = 1.1; // Tom levemente mais agudo/feminino
+      utterance.rate = 0.92; // Um pouco mais lenta para ser clara
+      utterance.pitch = 1.2; // Tom mais agudo para reforçar o timbre feminino
 
       const voz = escolherVozFeminina();
       if (voz) utterance.voice = voz;
@@ -389,17 +400,19 @@ function speakCall(nome, advogado, onDone) {
       utterance.onend = () => {
         repeticoes++;
         if (repeticoes < MAX_REP) {
-          setTimeout(falar, 1000); // Pausa de 1s entre repetições
+          // Espera 1.5 segundos entre a primeira e a segunda fala
+          setTimeout(falar, 1500);
         } else {
-          // SÓ CHAMA O ONDONE (QUE FECHA O POPUP) QUANDO TERMINAR TUDO
+          // Só fecha o popup após a SEGUNDA fala
           if (onDone) onDone();
         }
       };
+      
       window.speechSynthesis.speak(utterance);
     }
     
-    // Pequeno atraso para começar a falar após o segundo sinal sonoro
-    setTimeout(falar, 1800); 
+    // Inicia a fala logo após o toque (0.8 segundos de delay)
+    setTimeout(falar, 800); 
   } catch (err) {
     console.error("Erro na síntese de voz:", err);
     if (onDone) onDone();
@@ -423,17 +436,12 @@ function playNotificationSound() {
       osc.stop(ctx.currentTime + start + duration + 0.05);
     };
 
-    // Primeira execução (0s)
+    // Toca o acorde Dó-Mi-Sol uma única vez
     beep(523, 0.0, 0.18);
     beep(659, 0.22, 0.18);
     beep(784, 0.44, 0.35);
-
-    // Segunda execução (após 1 segundo)
-    beep(523, 1.0, 0.18);
-    beep(659, 1.22, 0.18);
-    beep(784, 1.44, 0.35);
   } catch (e) {
-    console.warn('Som nao disponivel:', e);
+    console.warn('Som não disponível:', e);
   }
 }
 
